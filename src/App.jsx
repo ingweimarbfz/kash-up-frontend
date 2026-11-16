@@ -29,6 +29,8 @@ const DelinquentPage = lazy(() => import('./pages/cobro/DelinquentPage'))
 const MapPage = lazy(() => import('./pages/cobro/MapPage'))
 const CloseDayPage = lazy(() => import('./pages/cobro/CloseDayPage'))
 const RequestsPage = lazy(() => import('./pages/creditos/RequestsPage'))
+const VehiclesPage = lazy(() => import('./pages/vehiculos/VehiclesPage'))
+const VehicleDetail = lazy(() => import('./pages/vehiculos/VehicleDetail'))
 const ReportsPage = lazy(() => import('./pages/reportes/ReportsPage'))
 const CustomerDetail = lazy(() => import('./pages/clientes/CustomerDetail'))
 
@@ -84,6 +86,8 @@ const App = () => (
               <Route path="morosos" element={<Protected roles={STAFF}><DelinquentPage /></Protected>} />
               <Route path="mapa" element={<Protected roles={STAFF}><MapPage /></Protected>} />
               <Route path="reportes" element={<Protected roles={['administrador']}><ReportsPage /></Protected>} />
+              <Route path="vehiculos" element={<Protected roles={STAFF}><VehiclesPage /></Protected>} />
+              <Route path="vehiculos/:id" element={<Protected roles={STAFF}><VehicleDetail /></Protected>} />
               <Route path="mis-pagos" element={<Protected roles={['cliente']}><MyPaymentsPage /></Protected>} />
               <Route path="mis-creditos" element={<Protected roles={['cliente']}><MyCreditsPage /></Protected>} />
               <Route path="*" element={<Navigate to="/" replace />} />

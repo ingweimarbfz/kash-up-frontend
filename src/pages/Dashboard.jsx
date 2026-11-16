@@ -71,10 +71,10 @@ const Extra = ({ x, admin }) => {
   const pend = x.pending || {}
   return (
     <>
-      {admin && (pend.creditRequests > 0 || pend.cashTransfers > 0) && (
+      {admin && (pend.creditRequests > 0 || pend.cashTransfers > 0 || pend.vehicleAlerts > 0) && (
         <div className="alert warn pending-alert">
           <MdNotificationsActive />
-          <span>Tienes pendientes por revisar:{pend.creditRequests > 0 && <> <Link to="/solicitudes">{pend.creditRequests} solicitud(es) de crédito</Link></>}{pend.creditRequests > 0 && pend.cashTransfers > 0 && ' y'}{pend.cashTransfers > 0 && <> <Link to="/capital">{pend.cashTransfers} traslado(s) de dinero</Link></>}.</span>
+          <span>Tienes pendientes por revisar:{pend.creditRequests > 0 && <> <Link to="/solicitudes">{pend.creditRequests} solicitud(es) de crédito</Link></>}{pend.creditRequests > 0 && pend.cashTransfers > 0 && ' y'}{pend.cashTransfers > 0 && <> <Link to="/capital">{pend.cashTransfers} traslado(s) de dinero</Link></>}{(pend.creditRequests > 0 || pend.cashTransfers > 0) && pend.vehicleAlerts > 0 && ' y'}{pend.vehicleAlerts > 0 && <> <Link to="/vehiculos">{pend.vehicleAlerts} vehículo(s) con documentos vencidos o aceite atrasado</Link></>}.</span>
         </div>
       )}
       <div className="grid grid-2-1">

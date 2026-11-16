@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { MdSearch, MdPersonAdd, MdAddCard, MdPayments, MdReceiptLong, MdLockOutline, MdPeople, MdRequestQuote, MdReceipt, MdInventory2, MdManageAccounts, MdNorthEast, MdKeyboardReturn } from 'react-icons/md'
+import { MdSearch, MdPersonAdd, MdAddCard, MdPayments, MdReceiptLong, MdLockOutline, MdPeople, MdRequestQuote, MdReceipt, MdInventory2, MdManageAccounts, MdNorthEast, MdKeyboardReturn, MdTwoWheeler } from 'react-icons/md'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { navFor } from '../utils/nav'
@@ -23,7 +23,7 @@ const ACTIONS = {
     { label: 'Cerrar jornada', hint: 'Cuadrar la caja del día', to: '/cierre', icon: MdLockOutline, words: 'cierre cuadre caja' }
   ]
 }
-const GROUP_ICON = { clientes: MdPeople, creditos: MdRequestQuote, pagos: MdReceipt, gastos: MdReceiptLong, productos: MdInventory2, usuarios: MdManageAccounts }
+const GROUP_ICON = { clientes: MdPeople, creditos: MdRequestQuote, pagos: MdReceipt, gastos: MdReceiptLong, productos: MdInventory2, usuarios: MdManageAccounts, vehiculos: MdTwoWheeler }
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
 export const useSearchShortcut = (open) => {
