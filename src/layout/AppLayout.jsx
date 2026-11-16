@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { MdMenu, MdChevronRight, MdLogout, MdPerson, MdKeyboardArrowDown, MdSearch } from 'react-icons/md'
+import { MdMenu, MdChevronRight, MdLogout, MdPerson, MdKeyboardArrowDown, MdSearch, MdPlace } from 'react-icons/md'
+import api, { getSiteFilter, setSiteFilter } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useSettings } from '../context/SettingsContext'
 import { navFor, titleFor, ACCOUNT_NAV, ROLE_LABELS } from '../utils/nav'
@@ -14,6 +15,24 @@ const todayLabel = (() => {
   const cap = (x) => x.replace('.', '').charAt(0).toUpperCase() + x.replace('.', '').slice(1, 3)
   return `${cap(parts.weekday)}, ${parts.day} ${cap(parts.month)} ${parts.year}`
 })()
+
+// Selector de sede del administrador: "Todas las sedes" o un cobro en particular.
+const SiteSelector = ({ value, onChange }) => {
+  const [sites, setSites] = useState(null)
+  useEffect(() => { api.get('/sedes', { params: { activas: 1, sede: undefined } }).then(({ data }) => setSites(data)).catch(() => setSites([])) }, [])
+  // Si la sede guardada ya no existe (o se desactivó), vuelve a "Todas".
+  useEffect(() => { if (sites && value && !sites.some((s) => s.id === value)) onChange(null) }, [sites, value, onChange])
+  if (!sites || sites.length < 2) return null
+  return (
+    <label className="site-select" title="Ver la información de una sede o de todas">
+      <MdPlace />
+      <select value={value || ''} onChange={(e) => onChange(Number(e.target.value) || null)} aria-label="Sede">
+        <option value="">Todas las sedes</option>
+        {sites.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+      </select>
+    </label>
+  )
+}
 
 const UserMenu = () => {
   const { user, logout } = useAuth()
@@ -61,6 +80,18 @@ const AppLayout = () => {
     setCollapsed((c) => { try { localStorage.setItem('ku_sidebar', c ? 'on' : 'off') } catch { /* sin almacenamiento */ } return !c })
   }
   useEffect(() => setOpen(false), [pathname])
+  const admin = user.role === 'administrador'
+  const [site, setSite] = useState(() => (admin ? getSiteFilter() : null))
+  const changeSite = useCallback((id) => { setSiteFilter(id); setSite(id) }, [])
+  // Otros componentes (p. ej. el resumen por sede del dashboard) pueden pedir cambiar la sede.
+  useEffect(() => {
+    const onSet = (e) => changeSite(e.detail)
+    window.addEventListener('ku:set-site', onSet)
+    return () => window.removeEventListener('ku:set-site', onSet)
+  }, [changeSite])
+  const siteControl = admin
+    ? <SiteSelector value={site} onChange={changeSite} />
+    : user.site && user.role === 'prestamista' && <span className="site-chip" title="Tu sede"><MdPlace /> {user.site.name}</span>
 
   const sections = navFor(user.role)
   const { section, title } = titleFor(user.role, pathname)
@@ -75,6 +106,7 @@ const AppLayout = () => {
           <small>Negocio</small>
           <strong>{settings.businessName}</strong>
         </div>
+        {siteControl && <div className="sidebar-site show-md">{siteControl}</div>}
         <nav className="sidebar-nav" aria-label="Menú principal">
           {sections.map((s) => (
             <div className="nav-section" key={s.title}>
@@ -126,6 +158,7 @@ const AppLayout = () => {
                 <MdSearch /> <span className="hide-sm">Buscar…</span> <kbd className="kbd hide-sm">Ctrl K</kbd>
               </button>
             )}
+            {siteControl && <div className="topbar-site hide-md">{siteControl}</div>}
             <span className="topbar-date hide-md">{todayLabel}</span>
             <UserMenu />
           </header>
@@ -137,7 +170,8 @@ const AppLayout = () => {
           </nav>
         </div>
         <main className="content">
-          <Outlet />
+          {/* Al cambiar de sede se recargan los datos de la página actual. */}
+          <Outlet key={site || 'all'} />
         </main>
         {searching && <SearchPalette onClose={() => setSearching(false)} />}
       </div>

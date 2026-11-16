@@ -1,16 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { MdAdd, MdEdit, MdSearch, MdManageAccounts } from 'react-icons/md'
-import api, { errorMessage } from '../api/client'
+import api, { errorMessage, getSiteFilter } from '../api/client'
 import { Avatar, Badge, Card, Empty, Field, Modal, PageHead, Spinner, useToast } from '../components/ui'
 import { ROLE_LABELS } from '../utils/nav'
 import { formatDateTime } from '../utils/format'
 
-const EMPTY = { identification: '', name: '', lastName: '', username: '', email: '', phone: '', role: 'prestamista', password: '', active: true }
+const EMPTY = { identification: '', name: '', lastName: '', username: '', email: '', phone: '', role: 'prestamista', password: '', active: true, siteId: '' }
 const ROLE_TONE = { administrador: 'dark', prestamista: 'brand', cliente: '' }
 
 const UserForm = ({ initial, onClose, onSaved }) => {
   const editing = Boolean(initial?.id)
-  const [form, setForm] = useState(editing ? { ...EMPTY, ...initial, password: '' } : EMPTY)
+  const [form, setForm] = useState(editing ? { ...EMPTY, ...initial, siteId: initial.siteId ?? '', password: '' } : { ...EMPTY, siteId: getSiteFilter() || '' })
+  const [sites, setSites] = useState([])
+  useEffect(() => { api.get('/sedes', { params: { activas: 1, sede: undefined } }).then(({ data }) => setSites(data)).catch(() => {}) }, [])
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
@@ -36,6 +38,11 @@ const UserForm = ({ initial, onClose, onSaved }) => {
             {Object.entries(ROLE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
         </Field>
+        {form.role === 'prestamista' && (
+          <Field label="Sede (cobro)" htmlFor="siteId" hint="La ciudad o cobro donde trabaja este rutero">
+            <select id="siteId" value={form.siteId} onChange={set('siteId')}><option value="">Sin sede</option>{sites.map((s) => <option key={s.id} value={s.id}>{s.name}{s.city ? ` · ${s.city}` : ''}</option>)}</select>
+          </Field>
+        )}
         <Field label="Identificación" htmlFor="identification" required>
           <input id="identification" value={form.identification} onChange={set('identification')} inputMode="numeric" placeholder="1065123456" />
         </Field>
@@ -100,7 +107,7 @@ const UsersPage = () => {
                     {shown.map((u) => (
                       <tr key={u.id}>
                         <td><div className="person"><Avatar user={u} size="sm" /><div><strong>{u.fullName}</strong><small>{u.username} · {u.identification}</small></div></div></td>
-                        <td><Badge tone={ROLE_TONE[u.role]}>{ROLE_LABELS[u.role]}</Badge></td>
+                        <td><Badge tone={ROLE_TONE[u.role]}>{ROLE_LABELS[u.role]}</Badge>{u.site && <><br /><small>{u.site.name}</small></>}</td>
                         <td className="hide-sm"><small>{u.phone || '—'}<br />{u.email || ''}</small></td>
                         <td className="hide-md"><small>{formatDateTime(u.lastLoginAt)}</small></td>
                         <td>{u.active ? <Badge tone="ok">Activo</Badge> : <Badge tone="muted">Inactivo</Badge>}</td>

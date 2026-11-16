@@ -1,6 +1,6 @@
 import {
   MdDashboard, MdPeople, MdRequestQuote, MdPayments, MdRoute, MdInventory2, MdPercent, MdBarChart,
-  MdManageAccounts, MdSettings, MdHistory, MdPerson, MdReceiptLong, MdWarningAmber, MdMap, MdSavings, MdAccountBalance, MdAccountBalanceWallet, MdLockOutline, MdPlaylistAddCheck, MdTwoWheeler, MdBadge
+  MdManageAccounts, MdSettings, MdHistory, MdPerson, MdReceiptLong, MdWarningAmber, MdMap, MdSavings, MdAccountBalance, MdAccountBalanceWallet, MdLockOutline, MdPlaylistAddCheck, MdTwoWheeler, MdBadge, MdPlace
 } from 'react-icons/md'
 
 export const ROLE_LABELS = { administrador: 'Administrador', prestamista: 'Prestamista', cliente: 'Cliente' }
@@ -36,6 +36,7 @@ const NAV = {
       title: 'Administración',
       items: [
         { to: '/reportes', label: 'Reportes', icon: MdBarChart },
+        { to: '/sedes', label: 'Sedes', icon: MdPlace },
         { to: '/usuarios', label: 'Usuarios', icon: MdManageAccounts },
         { to: '/configuracion', label: 'Configuración', icon: MdSettings },
         { to: '/auditoria', label: 'Auditoría', icon: MdHistory }

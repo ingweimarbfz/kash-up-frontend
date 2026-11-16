@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MdAccountBalanceWallet, MdPayments, MdWarningAmber, MdRequestQuote, MdPeople, MdBadge, MdRoute, MdEventAvailable, MdSavings, MdCheckCircle, MdAccountBalance, MdLockOutline, MdChevronRight, MdEventNote, MdShield, MdNotificationsActive } from 'react-icons/md'
-import api, { errorMessage } from '../api/client'
+import api, { errorMessage, getSiteFilter } from '../api/client'
+import { goToSite } from './sedes/SitesPage'
 import { useAuth } from '../context/AuthContext'
 import { Avatar, Badge, Card, Kpi, PageHead, Spinner, Empty } from '../components/ui'
 import { FlowChart, DonutChart, BarsChart, TrendChart } from '../components/charts'
@@ -111,17 +112,44 @@ const Extra = ({ x, admin }) => {
   )
 }
 
-const AdminDashboard = ({ d, x }) => (
+// Comparativo de sedes (vista "Todas las sedes").
+const SitesSummary = ({ rows }) => {
+  const navigate = useNavigate()
+  const tot = (k) => rows.reduce((t, r) => t + r[k], 0)
+  return (
+    <Card title="Por sede" subtitle="Toca una sede para ver solo su información" flush actions={<Link className="btn btn-sm" to="/sedes">Sedes</Link>}>
+      <div className="table-wrap"><table className="table">
+        <thead><tr><th>Sede</th><th className="num hide-sm">Ruteros</th><th className="num">Cartera</th><th className="num">En mora</th><th className="num">Recaudo hoy</th><th className="num hide-md">Recaudo mes</th><th className="num hide-md">Colocado mes</th><th className="num hide-md">Capital</th></tr></thead>
+        <tbody>{rows.map((r) => (
+          <tr key={r.id ?? 'sin'} className={r.id ? 'clickable' : ''} onClick={() => r.id && goToSite(r.id, navigate)}>
+            <td><strong>{r.name}</strong>{r.city && <><br /><small>{r.city}</small></>}</td>
+            <td className="num hide-sm">{r.lenders}</td>
+            <td className="num">{formatMoney(r.portfolio)}</td>
+            <td className="num"><span className={r.overdue ? 'text-bad' : ''}>{formatMoney(r.overdue)}</span><br /><small>{pct(r.overduePct)}</small></td>
+            <td className="num">{formatMoney(r.collectedToday)}</td>
+            <td className="num hide-md">{formatMoney(r.collectedMonth)}</td>
+            <td className="num hide-md">{formatMoney(r.placedMonth)}</td>
+            <td className="num hide-md">{r.ownCapital ? formatMoney(r.capital) : <small>Del negocio</small>}</td>
+          </tr>
+        ))}</tbody>
+        <tfoot><tr><td><strong>Total</strong></td><td className="num hide-sm">{tot('lenders')}</td><td className="num"><strong>{formatMoney(tot('portfolio'))}</strong></td><td className="num"><strong>{formatMoney(tot('overdue'))}</strong></td><td className="num"><strong>{formatMoney(tot('collectedToday'))}</strong></td><td className="num hide-md"><strong>{formatMoney(tot('collectedMonth'))}</strong></td><td className="num hide-md"><strong>{formatMoney(tot('placedMonth'))}</strong></td><td className="hide-md" /></tr></tfoot>
+      </table></div>
+    </Card>
+  )
+}
+
+const AdminDashboard = ({ d, x, sites }) => (
   <>
     <div className="grid grid-kpi">
       <Kpi label="Cartera activa" value={formatMoney(d.kpis.carteraActiva)} icon={MdAccountBalanceWallet} tone="dark" note="Capital pendiente de cobro" />
       <Kpi label="Recaudo de hoy" value={formatMoney(d.kpis.recaudoHoy)} icon={MdPayments} tone="brand" note="Pagos registrados hoy" />
       <Kpi label="En mora" value={formatMoney(d.kpis.enMora)} icon={MdWarningAmber} tone="bad" note="Cuotas vencidas sin pagar" />
       <Kpi label="Créditos activos" value={d.kpis.creditosActivos} icon={MdRequestQuote} note={d.kpis.clientesEnMora ? `${d.kpis.clientesEnMora} cliente(s) en mora` : null} />
-      <Kpi label="Saldo del negocio" value={formatMoney(d.kpis.saldoNegocio || 0)} icon={MdAccountBalance} note={`En cajas de prestamistas ${formatMoney(d.kpis.cajasPrestamistas || 0)}`} />
+      <Kpi label={d.kpis.capitalSede ? `Capital de ${d.kpis.capitalSede}` : 'Saldo del negocio'} value={formatMoney(d.kpis.saldoNegocio || 0)} icon={MdAccountBalance} note={`En cajas de prestamistas ${formatMoney(d.kpis.cajasPrestamistas || 0)}`} />
       <Kpi label="Prestamistas" value={d.kpis.prestamistas} icon={MdBadge} />
-      <Kpi label="Clientes con usuario" value={d.kpis.clientes} icon={MdPeople} />
+      <Kpi label={getSiteFilter() ? 'Clientes con crédito' : 'Clientes con usuario'} value={d.kpis.clientes} icon={MdPeople} />
     </div>
+    {sites?.length > 1 && <SitesSummary rows={sites} />}
     <div className="grid grid-2-1">
       <Card title="Colocado vs. recaudado" subtitle="Últimos 6 meses"><FlowChart data={d.series} /></Card>
       <Card title="Estado de la cartera" subtitle="Al día frente a mora"><DonutChart data={d.cartera} /></Card>
@@ -172,7 +200,9 @@ const Dashboard = () => {
   const [data, setData] = useState(null)
   const [extra, setExtra] = useState(null)
   const [error, setError] = useState('')
+  const [sites, setSites] = useState(null)
   useEffect(() => {
+    if (user.role === 'administrador' && !getSiteFilter()) api.get('/dashboard/sedes').then(({ data: d }) => setSites(d.rows)).catch(() => {})
     api.get('/dashboard').then(({ data: d }) => setData(d)).catch((e) => setError(errorMessage(e)))
     if (user.role !== 'cliente') api.get('/dashboard/extra').then(({ data: d }) => setExtra(d)).catch(() => setExtra(false))
   }, [user.role])
@@ -182,7 +212,7 @@ const Dashboard = () => {
       <PageHead title={`${greeting()}, ${user.name}`} subtitle={subtitle} />
       {error && <div className="alert bad">{error}</div>}
       {!data && !error && <div className="splash" style={{ minHeight: 240 }}><Spinner /></div>}
-      {data && user.role === 'administrador' && <AdminDashboard d={data} x={extra || null} />}
+      {data && user.role === 'administrador' && <AdminDashboard d={data} x={extra || null} sites={sites} />}
       {data && user.role === 'prestamista' && <LenderDashboard d={data} x={extra || null} />}
       {data && user.role === 'cliente' && <ClientDashboard d={data} />}
     </div>
