@@ -319,3 +319,6 @@ input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--brand); 
 .text-warn { color: #B45309; }
 tr.row-overdue td { background: #FFF8F8; }
 .disabled-text { color: var(--muted); }
+.input-pair { display: flex; gap: 6px; }
+.input-pair select { width: auto; flex-shrink: 0; }
+.table tfoot td { padding: 12px 16px; background: #FAFAFA; border-top: 1px solid var(--line); }
