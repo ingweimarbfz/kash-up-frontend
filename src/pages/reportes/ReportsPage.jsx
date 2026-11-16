@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { MdDownload, MdPrint } from 'react-icons/md'
-import api, { errorMessage } from '../../api/client'
+import { MdDownload, MdPictureAsPdf, MdDescription } from 'react-icons/md'
+import api, { errorMessage, getSiteFilter } from '../../api/client'
+import ReportSheet from './ReportSheet'
 import { Badge, Card, Empty, Kpi, PageHead, Spinner } from '../../components/ui'
 import { DonutChart, SeriesBars } from '../../components/charts'
 import { CHART } from '../../utils/brand'
@@ -159,7 +160,10 @@ const ReportsPage = () => {
   const [lenders, setLenders] = useState([])
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
+  const [sheet, setSheet] = useState(null)
+  const [siteName, setSiteName] = useState('')
   useEffect(() => { api.get('/prestamistas').then(({ data: d }) => setLenders(d)).catch(() => {}) }, [])
+  useEffect(() => { const s = getSiteFilter(); if (s) api.get('/sedes').then(({ data: d }) => setSiteName(d.find((x) => String(x.id) === String(s))?.name || '')).catch(() => {}) }, [])
   useEffect(() => {
     setData(null); setError('')
     api.get(`/reportes/${tab}`, { params: { desde: range[0], hasta: range[1], prestamista: lender || undefined } })
@@ -170,11 +174,15 @@ const ReportsPage = () => {
   const View = VIEWS[tab]
   const lenderLabel = useMemo(() => lenders.find((l) => String(l.id) === String(lender))?.fullName, [lenders, lender])
   const csv = (name, head, rows) => downloadCsv(`${name}-${tab === 'cartera' ? today : `${range[0]}_${range[1]}`}`, head, rows)
+  // Reporte en formato PDF: el de la pestaña actual o el informe completo (las cuatro secciones).
+  const openSheet = (tabs) => setSheet({ tabs, params: { desde: range[0], hasta: range[1], prestamista: lender || undefined }, scope: [siteName && `Sede ${siteName}`, lenderLabel].filter(Boolean).join(' · ') })
+  if (sheet) return <ReportSheet tabs={sheet.tabs} params={sheet.params} scope={sheet.scope} onBack={() => setSheet(null)} />
 
   return (
     <div className="stack">
       <PageHead title="Reportes" subtitle={tab === 'cartera' ? `Foto de la cartera activa al ${formatDate(today)}${lenderLabel ? ` · ${lenderLabel}` : ''}.` : `Del ${formatDate(range[0])} al ${formatDate(range[1])}${lenderLabel ? ` · ${lenderLabel}` : ''}.`}>
-        <button type="button" className="btn hide-sm" onClick={() => window.print()}><MdPrint /> Imprimir</button>
+        <button type="button" className="btn" onClick={() => openSheet([tab])}><MdPictureAsPdf /> Ver PDF</button>
+        <button type="button" className="btn btn-primary" onClick={() => openSheet(['recaudo', 'colocacion', 'cartera', 'resultados'])}><MdDescription /> Informe completo</button>
       </PageHead>
       <div className="tabs">{TABS.map(([k, l]) => <button key={k} type="button" className={tab === k ? 'on' : ''} onClick={() => setParams({ tab: k })}>{l}</button>)}</div>
       <Card flush>
