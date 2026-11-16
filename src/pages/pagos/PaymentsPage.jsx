@@ -55,11 +55,13 @@ const PaymentsPage = () => {
   const { user } = useAuth()
   const admin = user.role === 'administrador'
   const navigate = useNavigate()
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
   const [data, setData] = useState(null)
   const [lenders, setLenders] = useState([])
   const [filters, setFilters] = useState({ desde: todayBogota(), hasta: todayBogota(), prestamista: '', estado: '', q: '' })
   const [picking, setPicking] = useState(params.get('nuevo') === '1')
+  // Acceso rápido desde el buscador (?nuevo=1).
+  useEffect(() => { if (params.get('nuevo') === '1') { setPicking(true); setParams({}, { replace: true }) } }, [params, setParams])
   const [paying, setPaying] = useState(null)
   const [receipt, setReceipt] = useState(null)
   const [toast, toastNode] = useToast()

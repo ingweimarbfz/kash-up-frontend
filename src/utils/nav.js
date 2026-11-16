@@ -32,7 +32,7 @@ const NAV = {
     {
       title: 'Administración',
       items: [
-        { to: '/reportes', label: 'Reportes', icon: MdBarChart, soon: 'Etapa 4' },
+        { to: '/reportes', label: 'Reportes', icon: MdBarChart },
         { to: '/usuarios', label: 'Usuarios', icon: MdManageAccounts },
         { to: '/configuracion', label: 'Configuración', icon: MdSettings },
         { to: '/auditoria', label: 'Auditoría', icon: MdHistory }

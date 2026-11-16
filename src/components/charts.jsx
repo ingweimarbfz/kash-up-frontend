@@ -61,3 +61,36 @@ export const DonutChart = ({ data, height = 240, colors = [CHART.recaudo, CHART.
 }
 
 export { CHART_COLORS }
+
+// Barras (apiladas o agrupadas) para varias series con eje X configurable.
+export const SeriesBars = ({ data, xKey = 'label', series, stacked = false, height = 280, tickFormatter }) => (
+  <ResponsiveContainer width="100%" height={height}>
+    <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+      <CartesianGrid stroke={CHART.grid} vertical={false} />
+      <XAxis dataKey={xKey} {...axis} tickFormatter={tickFormatter} minTickGap={8} />
+      <YAxis {...axis} tickFormatter={formatShort} width={56} />
+      <Tooltip contentStyle={tooltipStyle} formatter={(v) => formatMoney(v)} labelFormatter={tickFormatter} cursor={{ fill: '#F4F4F5' }} />
+      {series.length > 1 && <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />}
+      {series.map((s, i) => <Bar key={s.key} dataKey={s.key} name={s.name} fill={s.color} stackId={stacked ? 'a' : undefined} radius={stacked && i < series.length - 1 ? 0 : [6, 6, 0, 0]} maxBarSize={36} />)}
+    </BarChart>
+  </ResponsiveContainer>
+)
+
+// Área simple (recaudo diario, etc.).
+export const TrendChart = ({ data, xKey = 'label', dataKey, name, color = CHART.recaudo, height = 220, tickFormatter }) => (
+  <ResponsiveContainer width="100%" height={height}>
+    <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+      <defs>
+        <linearGradient id={`g-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+          <stop offset="100%" stopColor={color} stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <CartesianGrid stroke={CHART.grid} vertical={false} />
+      <XAxis dataKey={xKey} {...axis} tickFormatter={tickFormatter} minTickGap={8} />
+      <YAxis {...axis} tickFormatter={formatShort} width={56} />
+      <Tooltip contentStyle={tooltipStyle} formatter={(v) => formatMoney(v)} labelFormatter={tickFormatter} />
+      <Area type="monotone" dataKey={dataKey} name={name} stroke={color} fill={`url(#g-${dataKey})`} strokeWidth={2} />
+    </AreaChart>
+  </ResponsiveContainer>
+)
