@@ -91,7 +91,7 @@ const CreditDetail = () => {
           </Card>
           <Card title="Condiciones"><CreditSummary c={c} /></Card>
           {c.items.length > 0 && (
-            <Card title="Productos entregados" flush>
+            <Card title="Productos entregados" subtitle={c.warehouse ? `Desde ${c.warehouse.name}` : null} flush>
               <table className="table"><tbody>{c.items.map((i) => <tr key={i.productId}><td><strong>{i.name}</strong><br /><small>{i.quantity} × {formatMoney(i.unitPrice)}</small></td><td className="num money">{formatMoney(i.subtotal)}</td></tr>)}</tbody></table>
             </Card>
           )}

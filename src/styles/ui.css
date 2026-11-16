@@ -276,6 +276,15 @@ input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--brand); 
 .photo-input.round .photo-box { border-radius: 50%; }
 .photo-box img { width: 100%; height: 100%; object-fit: cover; }
 .photo-box:has(img) { border-style: solid; border-color: var(--line); }
+.photo-input.doc { flex-direction: column; align-items: flex-start; gap: 8px; }
+.photo-input.doc .photo-box { width: 168px; height: 106px; border-radius: 10px; }
+.photo-input.doc .photo-actions { flex-direction: row; }
+.photo-row { display: grid; grid-template-columns: auto 1fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 720px) { .photo-row { grid-template-columns: 1fr 1fr; } .photo-row > :first-child { grid-column: 1 / -1; } .photo-input.doc .photo-box { width: 100%; max-width: 168px; } }
+.doc-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.doc-photos a { display: block; position: relative; text-decoration: none; }
+.doc-photos img { width: 100%; aspect-ratio: 1.585; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); display: block; }
+.doc-photos span { position: absolute; left: 6px; bottom: 6px; font-size: 11px; font-weight: 600; background: rgba(10,10,11,.75); color: #fff; padding: 2px 6px; border-radius: 4px; }
 .photo-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .location-input { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .small-link { font-size: 12.5px; color: var(--brand-600); text-decoration: underline; }
@@ -327,3 +336,32 @@ tr.row-overdue td { background: #FFF8F8; }
 .ref-block { padding-bottom: 14px; border-bottom: 1px dashed var(--line); }
 .ref-block:last-of-type { border-bottom: 0; }
 @media (min-width: 1025px) { .sticky-col { position: sticky; top: 120px; align-self: start; } }
+
+/* ---------- KU-008 · Inventario por bodegas, descuentos con ícono ---------- */
+small.block, .block { display: block; }
+.row-end { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.icon-bubble { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; background: var(--gray-100); color: var(--ink-2); }
+.icon-bubble.dark { background: var(--black); color: var(--white); }
+.wh-list { list-style: none; margin: 0; padding: 4px 0; }
+.wh-list li { display: flex; align-items: center; gap: 12px; padding: 11px 18px; border-bottom: 1px solid var(--line-2); }
+.wh-list li:last-child { border-bottom: 0; }
+.wh-list .grow { min-width: 0; flex: 1; }
+.wh-list small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+.inv-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.place-filter { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--muted); }
+.place-filter > svg { font-size: 20px; }
+.place-filter select { width: auto; min-width: 180px; }
+@media (max-width: 640px) { .inv-bar { flex-direction: column; align-items: stretch; } .tabs { overflow-x: auto; flex-wrap: nowrap; } .tabs button { white-space: nowrap; } .place-filter select { flex: 1; min-width: 0; } }
+.disc-icons { display: flex; flex-wrap: wrap; gap: 8px; }
+.disc-icons button { width: 42px; height: 42px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink-2); font-size: 20px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.disc-colors { display: flex; flex-wrap: wrap; gap: 10px; }
+.disc-colors button { width: 30px; height: 30px; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 1.5px var(--line); cursor: pointer; padding: 0; }
+.disc-colors button.on { box-shadow: 0 0 0 2.5px var(--ink); }
+.disc-preview { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--gray-100); }
+.disc-chip-row { margin-top: 6px; }
+p.hint, .hint { color: var(--muted); font-size: 12px; }
+@media (max-width: 640px) {
+  .inv-bar > .tabs { max-width: 100%; display: flex; }
+  .place-filter { width: 100%; flex-wrap: nowrap; }
+  .grid-kpi .kpi strong { font-size: 16px; white-space: normal; overflow: visible; text-overflow: clip; word-break: break-word; }
+}

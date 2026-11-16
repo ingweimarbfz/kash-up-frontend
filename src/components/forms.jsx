@@ -16,7 +16,8 @@ export const MoneyInput = ({ value, onChange, id, placeholder = '0', ...rest }) 
 }
 
 // Foto tomada con la cámara (en celular) o subida desde el equipo. Entrega { photo, thumb } en data URL.
-export const PhotoInput = ({ value, onChange, label = 'Tomar foto', round = true, capture = 'environment', withThumb = false }) => {
+// doc: formato de tarjeta (documento de identidad), con más resolución para que se lea.
+export const PhotoInput = ({ value, onChange, label = 'Tomar foto', round = true, capture = 'environment', withThumb = false, doc = false, placeholder = null }) => {
   const ref = useRef(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -26,15 +27,15 @@ export const PhotoInput = ({ value, onChange, label = 'Tomar foto', round = true
     if (!file) return
     setBusy(true); setError('')
     try {
-      const photo = await fileToDataUrl(file, { max: 640, quality: 0.8 })
+      const photo = await fileToDataUrl(file, { max: doc ? 1100 : 640, quality: doc ? 0.78 : 0.8 })
       const thumb = withThumb ? await fileToDataUrl(file, { max: 120, quality: 0.75 }) : null
       onChange(withThumb ? { photo, thumb } : photo)
     } catch (err) { setError(err.message) } finally { setBusy(false) }
   }
   return (
-    <div className={`photo-input${round ? ' round' : ''}`}>
+    <div className={`photo-input${round && !doc ? ' round' : ''}${doc ? ' doc' : ''}`}>
       <button type="button" className="photo-box" onClick={() => ref.current?.click()} aria-label={label}>
-        {value ? <img src={value} alt="" /> : busy ? <Spinner /> : <MdPhotoCamera />}
+        {value ? <img src={value} alt="" /> : busy ? <Spinner /> : <>{placeholder || <MdPhotoCamera />}</>}
       </button>
       <div className="photo-actions">
         <button type="button" className="btn btn-sm" onClick={() => ref.current?.click()}>{busy ? <Spinner /> : <MdPhotoCamera />} {value ? 'Cambiar' : label}</button>
@@ -74,4 +75,12 @@ export const Tabs = ({ tabs, value, onChange }) => (
       <button key={k} type="button" role="tab" aria-selected={value === k} className={value === k ? 'on' : ''} onClick={() => onChange(k)}>{label}</button>
     ))}
   </div>
+)
+
+// Silueta de documento de identidad para los recuadros de foto.
+export const DocIcon = ({ side = 'front' }) => (
+  <svg viewBox="0 0 64 40" width="64" height="40" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="2" y="2" width="60" height="36" rx="5" />
+    {side === 'front' ? (<><circle cx="18" cy="17" r="6" /><path d="M9 32c2-5 16-5 18 0" /><path d="M34 13h20M34 20h20M34 27h12" /></>) : (<><path d="M8 10h48" strokeWidth="5" /><path d="M10 22h30M10 29h22" /><rect x="44" y="20" width="12" height="12" rx="2" /></>)}
+  </svg>
 )

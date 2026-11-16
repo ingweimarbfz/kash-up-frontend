@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react'
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
 import { Field, Modal, Spinner } from '../../components/ui'
-import { LocationButton, MoneyInput, PhotoInput } from '../../components/forms'
+import { DocIcon, LocationButton, MoneyInput, PhotoInput } from '../../components/forms'
 import { CUSTOMER_STATUS, DOC_TYPES } from '../../utils/credit'
 
 const EMPTY = {
   docType: 'CC', identification: '', name: '', lastName: '', phone: '', phone2: '', email: '', address: '', neighborhood: '', city: '',
-  occupation: '', businessAddress: '', birthDate: '', photoUrl: null, photoThumb: null, idPhotoUrl: null, lat: null, lng: null,
+  occupation: '', businessAddress: '', birthDate: '', photoUrl: null, photoThumb: null, idPhotoUrl: null, idPhotoBackUrl: null, lat: null, lng: null,
   lenderId: '', creditLimit: '', status: 'activo', notes: ''
 }
 
@@ -39,14 +39,18 @@ const CustomerForm = ({ initial, onClose, onSaved }) => {
       footer={<><button type="button" className="btn" onClick={onClose}>Cancelar</button><button type="submit" form="customer-form" className="btn btn-primary" disabled={saving}>{saving && <Spinner />} Guardar cliente</button></>}>
       <form id="customer-form" className="form-grid" onSubmit={submit} noValidate>
         <div className="section-title">Foto</div>
-        <div className="span-2 row-between" style={{ alignItems: 'flex-start' }}>
+        <div className="span-2 photo-row">
           <Field label="Foto de la persona" required>
             <PhotoInput value={form.photoUrl} withThumb capture="user" label="Tomar foto" onChange={({ photo, thumb }) => setForm((f) => ({ ...f, photoUrl: photo, photoThumb: thumb }))} />
           </Field>
-          <Field label="Foto del documento (opcional)">
-            <PhotoInput value={form.idPhotoUrl} round={false} label="Foto del documento" onChange={(v) => setForm((f) => ({ ...f, idPhotoUrl: v }))} />
+          <Field label="Documento · parte delantera">
+            <PhotoInput doc value={form.idPhotoUrl} label="Delantera" placeholder={<DocIcon side="front" />} onChange={(v) => setForm((f) => ({ ...f, idPhotoUrl: v }))} />
+          </Field>
+          <Field label="Documento · parte trasera">
+            <PhotoInput doc value={form.idPhotoBackUrl} label="Trasera" placeholder={<DocIcon side="back" />} onChange={(v) => setForm((f) => ({ ...f, idPhotoBackUrl: v }))} />
           </Field>
         </div>
+        <p className="span-2 hint" style={{ margin: '-6px 0 0' }}>En el celular se abre la cámara trasera para fotografiar el documento. Procura buena luz y que se lean los datos.</p>
 
         <div className="section-title">Datos personales</div>
         <Field label="Tipo de documento" htmlFor="docType">
