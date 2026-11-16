@@ -1,5 +1,5 @@
 import {
-  MdDashboard, MdPeople, MdRequestQuote, MdPayments, MdRoute, MdInventory2, MdPercent, MdBarChart,
+  MdMenuBook, MdDashboard, MdPeople, MdRequestQuote, MdPayments, MdRoute, MdInventory2, MdPercent, MdBarChart,
   MdManageAccounts, MdSettings, MdHistory, MdPerson, MdReceiptLong, MdWarningAmber, MdMap, MdSavings, MdAccountBalance, MdAccountBalanceWallet, MdLockOutline, MdPlaylistAddCheck, MdTwoWheeler, MdBadge, MdPlace, MdNotificationsActive
 } from 'react-icons/md'
 
@@ -36,6 +36,7 @@ const NAV = {
       title: 'Administración',
       items: [
         { to: '/reportes', label: 'Reportes', icon: MdBarChart },
+        { to: '/bitacora', label: 'Bitácora', icon: MdMenuBook },
         { to: '/sedes', label: 'Sedes', icon: MdPlace },
         { to: '/usuarios', label: 'Usuarios', icon: MdManageAccounts },
         { to: '/notificaciones', label: 'Notificaciones', icon: MdNotificationsActive },

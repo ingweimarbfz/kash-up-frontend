@@ -37,6 +37,7 @@ const SitesPage = lazy(() => import('./pages/sedes/SitesPage'))
 const NotificationsPage = lazy(() => import('./pages/notificaciones/NotificationsPage'))
 const MyNotificationsPage = lazy(() => import('./pages/notificaciones/MyNotificationsPage'))
 const ReportsPage = lazy(() => import('./pages/reportes/ReportsPage'))
+const LogbookPage = lazy(() => import('./pages/bitacora/LogbookPage'))
 const CustomerDetail = lazy(() => import('./pages/clientes/CustomerDetail'))
 
 const STAFF = ['administrador', 'prestamista']
@@ -96,6 +97,7 @@ const App = () => (
               <Route path="morosos" element={<Protected roles={STAFF}><DelinquentPage /></Protected>} />
               <Route path="mapa" element={<Protected roles={STAFF}><MapPage /></Protected>} />
               <Route path="reportes" element={<Protected roles={['administrador']}><ReportsPage /></Protected>} />
+              <Route path="bitacora" element={<Protected roles={['administrador']}><LogbookPage /></Protected>} />
               <Route path="vehiculos" element={<Protected roles={FLEET}><VehiclesPage /></Protected>} />
               <Route path="vehiculos/:id" element={<Protected roles={FLEET}><VehicleDetail /></Protected>} />
               <Route path="conductores" element={<Protected roles={['administrador']}><DriversPage /></Protected>} />
