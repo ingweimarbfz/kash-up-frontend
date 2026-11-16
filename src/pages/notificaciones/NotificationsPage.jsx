@@ -187,7 +187,7 @@ const NotificationsPage = () => {
                 <button type="button" className="btn btn-sm" disabled={busy === 'e'} onClick={() => run('e', () => api.post('/notificaciones/resumen/cierre'), 'Resumen enviado')}>{busy === 'e' ? <Spinner /> : <MdSend />} Enviar ahora</button>
               </div>
             </div>
-            <div className="row-end"><button type="button" className="btn btn-primary" disabled={busy === 'sched'} onClick={saveSched}>{busy === 'sched' && <Spinner />} Guardar horarios</button></div>
+            <div className="row-end" style={{ marginTop: 16 }}><button type="button" className="btn btn-primary" disabled={busy === 'sched'} onClick={saveSched}>{busy === 'sched' && <Spinner />} Guardar horarios</button></div>
           </Card>
 
           <Card title="Últimos envíos" flush>
