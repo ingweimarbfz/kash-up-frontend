@@ -23,7 +23,7 @@ const NAV = {
       title: 'Cobro',
       items: [
         { to: '/rutas', label: 'Rutas y rutero', icon: MdRoute, soon: 'Etapa 3' },
-        { to: '/pagos', label: 'Pagos', icon: MdPayments, soon: 'Etapa 3' },
+        { to: '/pagos', label: 'Pagos', icon: MdPayments },
         { to: '/morosos', label: 'Morosos', icon: MdWarningAmber, soon: 'Etapa 3' },
         { to: '/mapa', label: 'Mapa', icon: MdMap, soon: 'Etapa 3' }
       ]
@@ -48,7 +48,7 @@ const NAV = {
         { to: '/clientes', label: 'Mis clientes', icon: MdPeople },
         { to: '/creditos', label: 'Créditos', icon: MdRequestQuote },
         { to: '/tasas', label: 'Simulador', icon: MdPercent },
-        { to: '/pagos', label: 'Registrar pago', icon: MdPayments, soon: 'Etapa 3' },
+        { to: '/pagos', label: 'Registrar pago', icon: MdPayments },
         { to: '/gastos', label: 'Gastos', icon: MdReceiptLong, soon: 'Etapa 3' }
       ]
     }
@@ -59,7 +59,7 @@ const NAV = {
       title: 'Mis créditos',
       items: [
         { to: '/mis-creditos', label: 'Créditos y cuotas', icon: MdSavings },
-        { to: '/mis-pagos', label: 'Mis pagos', icon: MdPayments, soon: 'Etapa 3' }
+        { to: '/mis-pagos', label: 'Mis pagos', icon: MdPayments }
       ]
     }
   ]

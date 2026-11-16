@@ -20,6 +20,8 @@ const CreditDetail = lazy(() => import('./pages/creditos/CreditDetail'))
 const MyCreditsPage = lazy(() => import('./pages/creditos/MyCreditsPage'))
 const CapitalPage = lazy(() => import('./pages/capital/CapitalPage'))
 const MyCashPage = lazy(() => import('./pages/capital/MyCashPage'))
+const PaymentsPage = lazy(() => import('./pages/pagos/PaymentsPage'))
+const MyPaymentsPage = lazy(() => import('./pages/pagos/MyPaymentsPage'))
 const CustomerDetail = lazy(() => import('./pages/clientes/CustomerDetail'))
 
 const STAFF = ['administrador', 'prestamista']
@@ -64,6 +66,8 @@ const App = () => (
               <Route path="creditos/:id" element={<Protected roles={STAFF}><CreditDetail /></Protected>} />
               <Route path="capital" element={<Protected roles={['administrador']}><CapitalPage /></Protected>} />
               <Route path="mi-caja" element={<Protected roles={['prestamista']}><MyCashPage /></Protected>} />
+              <Route path="pagos" element={<Protected roles={STAFF}><PaymentsPage /></Protected>} />
+              <Route path="mis-pagos" element={<Protected roles={['cliente']}><MyPaymentsPage /></Protected>} />
               <Route path="mis-creditos" element={<Protected roles={['cliente']}><MyCreditsPage /></Protected>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

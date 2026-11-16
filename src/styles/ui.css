@@ -391,3 +391,43 @@ p.hint, .hint { color: var(--muted); font-size: 12px; }
 .picked small { display: block; color: var(--muted); font-size: 12px; }
 .alert.info { background: var(--gray-100); color: var(--ink-2); }
 .funds-note svg { font-size: 18px; flex-shrink: 0; }
+
+/* KU-010 · Pagos */
+.list-cards.always { display: flex; flex-direction: column; }
+.list-cards.always .list-card, .pick-list .list-card { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--line-2); }
+.list-cards.always .list-card .grow, .pick-list .list-card .grow { flex: 1; min-width: 0; }
+.list-cards.always .list-card strong, .pick-list .list-card strong { display: block; font-size: 14px; }
+.list-cards.always .list-card small, .pick-list .list-card small { display: block; }
+.pick-list { display: flex; flex-direction: column; gap: 8px; }
+.pick-list .list-card { width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); font: inherit; color: inherit; cursor: pointer; }
+.pick-list .list-card:hover { border-color: var(--ink); }
+.pick-list .list-card .right { text-align: right; }
+.quick-amounts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: -6px; }
+.btn.on { background: var(--black); color: var(--white); border-color: var(--black); }
+.stat-list.compact { padding: 10px 12px; background: var(--gray-100); border-radius: var(--radius-sm); }
+.stat-list.compact > div { padding: 3px 0; border: 0; }
+small.waived { display: block; color: var(--brand-600); font-weight: 500; }
+tr.row-void td { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--gray-300); }
+tr.row-void td .badge { text-decoration: none; }
+.receipt-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 14px; border-radius: var(--radius-sm); background: var(--black); color: var(--white); }
+.receipt-head small { color: var(--gray-400); display: block; }
+.receipt-head strong { display: block; font-size: 26px; font-weight: 800; margin: 2px 0; }
+.receipt-head span { font-size: 13px; color: var(--gray-300); }
+.modal-foot .spacer { flex: 1; }
+a.link { cursor: pointer; text-decoration: underline; color: inherit; font-weight: 600; }
+.seg { display: inline-flex; gap: 4px; }
+@media (max-width: 640px) {
+  .quick-amounts .btn { flex: 1 1 100%; }
+  .modal-foot { flex-wrap: wrap; }
+}
+.toolbar input[type=date] { width: auto; flex: 0 0 auto; }
+@media (max-width: 640px) {
+  .toolbar input[type=date] { flex: 1 1 40%; min-width: 0; }
+  .toolbar .seg { width: 100%; }
+  .toolbar .seg .btn { flex: 1; }
+}
+.grid > * { min-width: 0; }
+@media (max-width: 640px) {
+  .toolbar .input-icon.grow { flex: 1 1 100%; }
+  .toolbar select { flex: 1 1 100%; }
+}
