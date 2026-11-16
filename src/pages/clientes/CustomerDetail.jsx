@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { MdEdit, MdAdd, MdPhone, MdPlace, MdWork, MdKey, MdArrowBack, MdRequestQuote, MdWhatsapp } from 'react-icons/md'
+import { MdEdit, MdAdd, MdPhone, MdPlace, MdWork, MdKey, MdArrowBack, MdRequestQuote, MdWhatsapp, MdSwapHoriz, MdReceiptLong, MdWarningAmber } from 'react-icons/md'
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
 import { Badge, Card, Empty, Field, Modal, PageHead, Spinner, useToast } from '../../components/ui'
 import { formatDate, formatMoney } from '../../utils/format'
 import { CREDIT_STATUS, CUSTOMER_STATUS, FREQ_LABEL, KIND_LABEL } from '../../utils/credit'
+import TransferModal from './TransferModal'
+import { PhotoInput } from '../../components/forms'
 import CustomerForm from './CustomerForm'
 
 const SCORE_COLORS = { ok: '#10B981', brand: '#059669', warn: '#F59E0B', bad: '#EF4444', '': '#A1A1AA' }
@@ -57,6 +59,8 @@ const CustomerDetail = () => {
   const [error, setError] = useState('')
   const [editing, setEditing] = useState(false)
   const [access, setAccess] = useState(false)
+  const [transfer, setTransfer] = useState(false)
+  const [billBusy, setBillBusy] = useState(false)
   const [toast, toastNode] = useToast()
   const load = useCallback(() => { api.get(`/clientes/${id}`).then(({ data }) => setC(data)).catch((e) => setError(errorMessage(e))) }, [id])
   useEffect(() => { load() }, [load])
@@ -74,6 +78,7 @@ const CustomerDetail = () => {
         <button type="button" className="btn btn-ghost" onClick={() => navigate('/clientes')}><MdArrowBack /> Clientes</button>
         {admin && <button type="button" className="btn" onClick={() => setAccess(true)}><MdKey /> {c.user ? 'Acceso' : 'Dar acceso'}</button>}
         <button type="button" className="btn" onClick={() => setEditing(true)}><MdEdit /> Editar</button>
+        <button type="button" className="btn" onClick={() => setTransfer(true)}><MdSwapHoriz /> Trasladar de ruta</button>
         {c.status === 'activo' && <button type="button" className="btn btn-primary" onClick={() => navigate(`/creditos/nuevo?cliente=${c.id}`)}><MdAdd /> Nuevo crédito</button>}
       </PageHead>
 
@@ -131,22 +136,49 @@ const CustomerDetail = () => {
         </Card>
         <div className="stack">
           <ScoreCard score={c.score} />
-          {(c.idPhotoUrl || c.idPhotoBackUrl || c.notes) && (
-            <Card title="Documento y notas">
-              {(c.idPhotoUrl || c.idPhotoBackUrl) && (
+          {!c.utilityBillUrl && (
+            <Card title="Recibo de servicios" icon={<MdReceiptLong />}>
+              <div className="stack">
+                <div className="alert warn"><MdWarningAmber /> Falta la foto del recibo de servicios. Sin ella no se le puede prestar.</div>
+                <PhotoInput doc value={null} label={billBusy ? 'Subiendo…' : 'Tomar foto del recibo'} placeholder={<MdReceiptLong size={34} />} onChange={async (v) => {
+                  if (!v) return
+                  setBillBusy(true)
+                  try { await api.put(`/clientes/${c.id}/recibo`, { utilityBillUrl: v }); toast('Recibo guardado'); load() } catch (e) { toast(errorMessage(e), 'bad') } finally { setBillBusy(false) }
+                }} />
+              </div>
+            </Card>
+          )}
+          {(c.idPhotoUrl || c.idPhotoBackUrl || c.utilityBillUrl || c.notes) && (
+            <Card title="Documento, recibo y notas">
+              {(c.idPhotoUrl || c.idPhotoBackUrl || c.utilityBillUrl) && (
                 <div className="doc-photos">
-                  {[['Delantera', c.idPhotoUrl], ['Trasera', c.idPhotoBackUrl]].filter(([, u]) => u).map(([label, u]) => (
-                    <a key={label} href={u} target="_blank" rel="noreferrer"><img src={u} alt={`Documento, parte ${label.toLowerCase()}`} /><span>{label}</span></a>
+                  {[['Documento delantera', c.idPhotoUrl], ['Documento trasera', c.idPhotoBackUrl], [`Recibo de servicios${c.utilityBillAt ? ` · ${formatDate(c.utilityBillAt)}` : ''}`, c.utilityBillUrl]].filter(([, u]) => u).map(([label, u]) => (
+                    <a key={label} href={u} target="_blank" rel="noreferrer"><img src={u} alt={label} /><span>{label}</span></a>
                   ))}
                 </div>
               )}
               {c.notes && <p style={{ margin: 0 }}>{c.notes}</p>}
             </Card>
           )}
+          {c.transfers?.length > 0 && (
+            <Card title="Traslados de ruta" icon={<MdSwapHoriz />}>
+              <div className="stack" style={{ gap: 10 }}>
+                {c.transfers.map((t) => (
+                  <div key={t.id} className="transfer-item">
+                    <strong>{t.from || 'Sin asignar'} → {t.to || 'Sin asignar'}</strong>
+                    <small>{formatDate(t.createdAt)} · {t.user}{t.creditsMoved ? ` · ${t.creditsMoved} crédito(s) por ${formatMoney(t.balanceMoved)}` : ''}</small>
+                    {t.newAddress !== t.oldAddress && <small>Se mudó: {t.oldAddress} → {t.newAddress}</small>}
+                    {t.note && <small>{t.note}</small>}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </div>
       </div>
 
       {editing && <CustomerForm initial={c} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); toast('Cliente actualizado'); load() }} />}
+      {transfer && <TransferModal customer={c} onClose={() => setTransfer(false)} onDone={(d, to) => { setTransfer(false); if (user.role === 'prestamista') navigate('/clientes', { replace: true }); else { toast(`Cliente trasladado a la ruta de ${to?.fullName || d.lender?.fullName}`); load() } }} />}
       {access && <AccessModal customer={c} onClose={() => setAccess(false)} onSaved={() => { setAccess(false); toast('Acceso guardado'); load() }} />}
       {toastNode}
       <p className="disabled-text" style={{ fontSize: 12 }}><Link to="/clientes">← Volver a clientes</Link></p>

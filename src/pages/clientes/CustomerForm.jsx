@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react'
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
 import { Field, Modal, Spinner } from '../../components/ui'
+import { MdReceiptLong } from 'react-icons/md'
 import { DocIcon, LocationButton, MoneyInput, PhotoInput } from '../../components/forms'
 import { CUSTOMER_STATUS, DOC_TYPES } from '../../utils/credit'
 
 const EMPTY = {
   docType: 'CC', identification: '', name: '', lastName: '', phone: '', phone2: '', email: '', address: '', neighborhood: '', city: '',
-  occupation: '', businessAddress: '', birthDate: '', photoUrl: null, photoThumb: null, idPhotoUrl: null, idPhotoBackUrl: null, lat: null, lng: null,
+  occupation: '', businessAddress: '', birthDate: '', photoUrl: null, photoThumb: null, idPhotoUrl: null, idPhotoBackUrl: null, utilityBillUrl: null, lat: null, lng: null,
   lenderId: '', creditLimit: '', status: 'activo', notes: ''
 }
 
@@ -27,6 +28,7 @@ const CustomerForm = ({ initial, onClose, onSaved }) => {
     e.preventDefault()
     setError('')
     if (!form.photoUrl) { setError('Toma o sube la foto del cliente: es obligatoria.'); return }
+    if (!editing && !form.utilityBillUrl) { setError('Toma la foto de un recibo de servicios (agua, luz o gas) para comprobar la dirección.'); return }
     setSaving(true)
     try {
       const { data } = editing ? await api.put(`/clientes/${initial.id}`, form) : await api.post('/clientes', form)
@@ -48,6 +50,11 @@ const CustomerForm = ({ initial, onClose, onSaved }) => {
           </Field>
           <Field label="Documento · parte trasera">
             <PhotoInput doc value={form.idPhotoBackUrl} label="Trasera" placeholder={<DocIcon side="back" />} onChange={(v) => setForm((f) => ({ ...f, idPhotoBackUrl: v }))} />
+          </Field>
+        </div>
+        <div className="span-2 photo-row">
+          <Field label="Recibo de servicios públicos" required={!editing} hint="Agua, luz o gas a nombre del hogar: comprueba la dirección de residencia.">
+            <PhotoInput doc value={form.utilityBillUrl} label="Recibo" placeholder={<MdReceiptLong size={34} />} onChange={(v) => setForm((f) => ({ ...f, utilityBillUrl: v }))} />
           </Field>
         </div>
         <p className="span-2 hint" style={{ margin: '-6px 0 0' }}>En el celular se abre la cámara trasera para fotografiar el documento. Procura buena luz y que se lean los datos.</p>
@@ -76,7 +83,7 @@ const CustomerForm = ({ initial, onClose, onSaved }) => {
 
         <div className="section-title">Crédito</div>
         {admin && (
-          <Field label="Prestamista asignado" htmlFor="clender">
+          <Field label="Prestamista asignado" htmlFor="clender" hint={editing ? 'Si cambias el prestamista, sus créditos activos pasan a la nueva ruta' : null}>
             <select id="clender" value={form.lenderId || ''} onChange={set('lenderId')}>
               <option value="">Sin asignar</option>
               {lenders.map((l) => <option key={l.id} value={l.id}>{l.fullName}</option>)}

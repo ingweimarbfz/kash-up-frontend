@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { MdAdd, MdDelete, MdArrowBack, MdCheck, MdPayments, MdInventory2, MdSavings, MdAutorenew } from 'react-icons/md'
+import { MdAdd, MdDelete, MdArrowBack, MdCheck, MdPayments, MdInventory2, MdSavings, MdAutorenew, MdReceiptLong } from 'react-icons/md'
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
 import { Card, Field, PageHead, Spinner } from '../../components/ui'
-import { MoneyInput, Tabs } from '../../components/forms'
+import { MoneyInput, PhotoInput, Tabs } from '../../components/forms'
 import ScheduleTable from '../../components/ScheduleTable'
 import { FREQUENCIES, FREQ_LABEL, METHODS, METHOD_LABEL, rateText } from '../../utils/credit'
 import { formatDate, formatMoney } from '../../utils/format'
@@ -22,6 +22,7 @@ const NewCreditPage = () => {
   const [customer, setCustomer] = useState(null)
   const renewId = params.get('renovar')
   const [renewal, setRenewal] = useState(null)
+  const [billBusy, setBillBusy] = useState(false)
   const [rates, setRates] = useState([])
   const [products, setProducts] = useState([])
   const [discounts, setDiscounts] = useState([])
@@ -89,7 +90,7 @@ const NewCreditPage = () => {
   }), [form, renewal])
 
   // Vista previa automática del plan cuando cambian las condiciones.
-  const ready = (!renewId || renewal?.canRenew) && form.customerId && form.count && form.rate !== '' && (form.kind === 'efectivo' ? Number(form.principal) > 0 : form.items.some((it) => it.productId && Number(it.quantity) > 0))
+  const ready = (!renewId || renewal?.canRenew) && form.customerId && customer?.hasUtilityBill !== false && form.count && form.rate !== '' && (form.kind === 'efectivo' ? Number(form.principal) > 0 : form.items.some((it) => it.productId && Number(it.quantity) > 0))
   useEffect(() => {
     if (!ready) { setPreview(null); setPreviewError(''); return undefined }
     const t = setTimeout(() => {
@@ -125,6 +126,16 @@ const NewCreditPage = () => {
               <div className="span-2"><Field label="Cliente" htmlFor="nc" required>
                 <CustomerPicker id="nc" value={customer} onChange={pickCustomer} locked={Boolean(renewId)} />
               </Field></div>
+              {customer && !customer.hasUtilityBill && (
+                <div className="span-2 bill-needed">
+                  <div className="alert warn"><MdReceiptLong /> <span>Falta la foto del recibo de servicios de <strong>{customer.fullName}</strong> para comprobar su dirección. Tómala aquí para poder prestarle.</span></div>
+                  <PhotoInput doc value={null} label={billBusy ? 'Subiendo…' : 'Tomar foto del recibo'} placeholder={<MdReceiptLong size={34} />} onChange={async (v) => {
+                    if (!v) return
+                    setBillBusy(true); setError('')
+                    try { await api.put(`/clientes/${customer.id}/recibo`, { utilityBillUrl: v }); setCustomer((c) => ({ ...c, hasUtilityBill: true })); setForm((f) => ({ ...f })) } catch (e) { setError(errorMessage(e)) } finally { setBillBusy(false) }
+                  }} />
+                </div>
+              )}
               {!renewId && <div className="span-2"><Tabs value={form.kind} onChange={(v) => setForm((f) => ({ ...f, kind: v, items: v === 'producto' && !f.items.length ? [{ productId: '', quantity: 1 }] : f.items }))} tabs={[['efectivo', 'Crédito en efectivo'], ['producto', 'Crédito de producto']]} /></div>}
               {form.kind === 'efectivo' && <Field label={renewId ? 'Valor del nuevo préstamo' : 'Valor del préstamo'} htmlFor="np" required hint={renewal?.canRenew ? `Debe ser mayor que el saldo actual (${formatMoney(renewal.payoff)})` : null}><MoneyInput id="np" value={form.principal} onChange={set('principal')} /></Field>}
               {admin && (
