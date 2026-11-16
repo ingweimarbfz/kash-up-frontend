@@ -624,3 +624,55 @@ small.visit-note { color: var(--ink-2) !important; display: flex !important; ali
 .tg-groups { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 .tg-group { display: grid; gap: 8px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
 .tg-group button { justify-self: start; }
+
+/* KU-020 · Galería, ficha de producto y promociones */
+.link-btn { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-align: left; }
+.link-btn:hover strong { text-decoration: underline; }
+.gallery-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.gallery-inputs .photo-input { flex-direction: column; align-items: flex-start; }
+@media (max-width: 640px) { .gallery-inputs { grid-template-columns: 1fr; } .gallery-inputs .photo-input { flex-direction: row; } }
+.promo-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; line-height: 1.2; white-space: nowrap; background: #111; color: #fff; vertical-align: middle; }
+.promo-tag.sm { font-size: 10px; padding: 2px 6px; }
+.promo-tag.lg { font-size: 14px; padding: 6px 12px; border-radius: 8px; }
+.promo-price { display: inline-flex; flex-direction: column; align-items: flex-end; line-height: 1.2; }
+.promo-price s { color: var(--muted); font-size: 12px; font-weight: 400; }
+.promo-preview { display: flex; align-items: center; gap: 14px; padding: 14px; border: 1px dashed var(--line); border-radius: 12px; background: #FAFAFA; flex-wrap: wrap; }
+.promo-preview > div { display: grid; gap: 2px; min-width: 0; }
+.promo-preview small { color: var(--muted); }
+.emoji-pick { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.emoji-pick button { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line); background: #fff; font-size: 19px; cursor: pointer; }
+.emoji-pick button.on { border-color: var(--text); box-shadow: 0 0 0 2px var(--text) inset; }
+.emoji-pick .emoji-free { width: 70px; text-align: center; }
+.day-pick { display: flex; gap: 6px; flex-wrap: wrap; }
+.day-pick button { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: #fff; font-weight: 700; cursor: pointer; }
+.day-pick button.on { background: var(--text); color: #fff; border-color: var(--text); }
+.promo-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.promo-card { display: grid; gap: 6px; align-content: start; padding: 16px; background: #fff; border: 1px solid var(--line); border-top: 4px solid var(--promo, #111); border-radius: 14px; }
+.promo-card.vencida, .promo-card.inactiva { opacity: .6; }
+.promo-card small { display: flex; gap: 6px; align-items: flex-start; }
+.promo-card small svg { flex: none; margin-top: 2px; color: var(--muted); }
+.promo-value { font-size: 28px; font-weight: 800; letter-spacing: -.02em; color: var(--promo, #111); }
+.pdp { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 28px; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 24px; }
+@media (max-width: 900px) { .pdp { grid-template-columns: 1fr; padding: 16px; gap: 18px; } }
+.pdp-gallery { display: grid; gap: 12px; min-width: 0; }
+.pdp-main { position: relative; aspect-ratio: 1 / 1; border-radius: 14px; background: #F4F4F5; overflow: hidden; display: grid; place-items: center; }
+.pdp-main img { width: 100%; height: 100%; object-fit: contain; }
+.pdp-noimg { display: inline-flex; gap: 8px; align-items: center; color: var(--muted); }
+.pdp-ribbon { position: absolute; top: 14px; left: 14px; }
+.pdp-thumbs { display: flex; gap: 10px; flex-wrap: wrap; }
+.pdp-thumbs button { width: 74px; height: 74px; padding: 0; border-radius: 10px; border: 2px solid transparent; background: #F4F4F5; overflow: hidden; cursor: pointer; }
+.pdp-thumbs button.on { border-color: var(--text); }
+.pdp-thumbs img { width: 100%; height: 100%; object-fit: cover; }
+.pdp-info { display: grid; gap: 14px; align-content: start; min-width: 0; }
+.pdp-info h1 { margin: 0; font-size: 28px; line-height: 1.15; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.pdp-price { display: grid; gap: 4px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.pdp-final { font-size: 34px; font-weight: 800; letter-spacing: -.02em; }
+.pdp-list { color: var(--muted); font-size: 15px; }
+.pdp-save { font-size: 13px; font-weight: 600; color: var(--brand-600); }
+.pdp-stock { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.pdp-info .btn-primary { justify-self: start; }
+.pdp-desc h3 { margin: 0 0 6px; font-size: 14px; }
+.pdp-desc p { margin: 0; white-space: pre-line; color: var(--text); line-height: 1.5; }
+.pdp-upcoming { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.pdp-upcoming li { display: flex; gap: 10px; align-items: flex-start; }
+.pdp-upcoming li > div { display: grid; gap: 2px; min-width: 0; }
