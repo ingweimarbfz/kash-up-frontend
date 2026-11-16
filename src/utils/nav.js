@@ -12,7 +12,7 @@ const NAV = {
     {
       title: 'Cartera',
       items: [
-        { to: '/clientes', label: 'Clientes', icon: MdPeople, soon: 'Etapa 2' },
+        { to: '/clientes', label: 'Clientes', icon: MdPeople },
         { to: '/creditos', label: 'Créditos', icon: MdRequestQuote, soon: 'Etapa 2' },
         { to: '/tasas', label: 'Tasas de interés', icon: MdPercent, soon: 'Etapa 2' },
         { to: '/inventario', label: 'Inventario', icon: MdInventory2, soon: 'Etapa 2' }
@@ -43,7 +43,7 @@ const NAV = {
       title: 'Cobro',
       items: [
         { to: '/mi-ruta', label: 'Mi ruta', icon: MdRoute, soon: 'Etapa 3' },
-        { to: '/clientes', label: 'Mis clientes', icon: MdPeople, soon: 'Etapa 2' },
+        { to: '/clientes', label: 'Mis clientes', icon: MdPeople },
         { to: '/pagos', label: 'Registrar pago', icon: MdPayments, soon: 'Etapa 3' },
         { to: '/gastos', label: 'Gastos', icon: MdReceiptLong, soon: 'Etapa 3' }
       ]

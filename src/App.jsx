@@ -11,6 +11,10 @@ const UsersPage = lazy(() => import('./pages/UsersPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const AuditPage = lazy(() => import('./pages/AuditPage'))
+const CustomersPage = lazy(() => import('./pages/clientes/CustomersPage'))
+const CustomerDetail = lazy(() => import('./pages/clientes/CustomerDetail'))
+
+const STAFF = ['administrador', 'prestamista']
 
 const Splash = () => <div className="splash"><Spinner /></div>
 
@@ -43,6 +47,8 @@ const App = () => (
               <Route path="usuarios" element={<Protected roles={['administrador']}><UsersPage /></Protected>} />
               <Route path="configuracion" element={<Protected roles={['administrador']}><SettingsPage /></Protected>} />
               <Route path="auditoria" element={<Protected roles={['administrador']}><AuditPage /></Protected>} />
+              <Route path="clientes" element={<Protected roles={STAFF}><CustomersPage /></Protected>} />
+              <Route path="clientes/:id" element={<Protected roles={STAFF}><CustomerDetail /></Protected>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
