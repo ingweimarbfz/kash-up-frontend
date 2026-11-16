@@ -23,7 +23,7 @@ const ScheduleTable = ({ rows, withStatus = false, limit = 12, compact = false }
               <td className="num money"><strong>{formatMoney(r.amount)}</strong></td>
               {withStatus && (
                 <>
-                  <td className="num money hide-sm">{formatMoney(r.paidAmount)}</td>
+                  <td className="num money hide-sm">{formatMoney(r.paidAmount)}{r.waived > 0 && <small className="waived" title="Interés condonado por abono a capital">− {formatMoney(r.waived)} int.</small>}</td>
                   <td>{r.overdue ? <Badge tone="bad">Vencida</Badge> : <Badge tone={INSTALLMENT_STATUS[r.status][1]}>{INSTALLMENT_STATUS[r.status][0]}</Badge>}</td>
                 </>
               )}

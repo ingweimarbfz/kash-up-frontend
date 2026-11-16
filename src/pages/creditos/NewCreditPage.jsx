@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { MdAdd, MdDelete, MdArrowBack, MdCheck, MdPayments, MdInventory2, MdSavings } from 'react-icons/md'
+import { MdAdd, MdDelete, MdArrowBack, MdCheck, MdPayments, MdInventory2, MdSavings, MdAutorenew } from 'react-icons/md'
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
 import { Card, Field, PageHead, Spinner } from '../../components/ui'
@@ -20,6 +20,8 @@ const NewCreditPage = () => {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const [customer, setCustomer] = useState(null)
+  const renewId = params.get('renovar')
+  const [renewal, setRenewal] = useState(null)
   const [rates, setRates] = useState([])
   const [products, setProducts] = useState([])
   const [discounts, setDiscounts] = useState([])
@@ -37,15 +39,21 @@ const NewCreditPage = () => {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    // Cliente que llega desde su ficha (?cliente=ID).
-    const pre = params.get('cliente')
-    if (pre) {
+    // Cliente que llega desde su ficha (?cliente=ID) o el crédito a renovar (?renovar=ID).
+    const loadCustomer = (pre) => {
       api.get(`/clientes/${pre}`).then(({ data: c }) => {
         if (c.status !== 'activo') return
         const act = (c.credits || []).filter((k) => k.status === 'activo')
         setCustomer({ ...c, activeCredits: act.length, balance: act.reduce((s, k) => s + k.balance, 0), overdue: act.reduce((s, k) => s + k.overdue, 0) })
       }).catch(() => {})
     }
+    if (renewId) {
+      api.get(`/creditos/${renewId}/renovacion`).then(({ data: r }) => {
+        setRenewal(r)
+        setForm((f) => ({ ...f, kind: 'efectivo', items: [], customerId: String(r.customerId), lenderId: r.lenderId ? String(r.lenderId) : '' }))
+        loadCustomer(r.customerId)
+      }).catch((e) => setRenewal({ canRenew: false, reason: errorMessage(e) }))
+    } else if (params.get('cliente')) loadCustomer(params.get('cliente'))
     api.get('/tasas', { params: { activas: 1 } }).then(({ data }) => setRates(data)).catch(() => {})
     api.get('/descuentos', { params: { activos: 1 } }).then(({ data }) => setDiscounts(data)).catch(() => {})
     api.get('/inventario/bodegas', { params: { activas: 1 } }).then(({ data }) => {
@@ -74,13 +82,14 @@ const NewCreditPage = () => {
   const body = useMemo(() => ({
     ...form,
     rate: Number(String(form.rate).replace(',', '.')),
+    renewFromId: renewal?.creditId || undefined,
     count: Number(form.count),
     firstDueDate: form.firstDueDate || undefined,
     items: form.items.map((it) => ({ productId: Number(it.productId), quantity: Number(it.quantity), unitPrice: it.unitPrice }))
-  }), [form])
+  }), [form, renewal])
 
   // Vista previa automática del plan cuando cambian las condiciones.
-  const ready = form.customerId && form.count && form.rate !== '' && (form.kind === 'efectivo' ? Number(form.principal) > 0 : form.items.some((it) => it.productId && Number(it.quantity) > 0))
+  const ready = (!renewId || renewal?.canRenew) && form.customerId && form.count && form.rate !== '' && (form.kind === 'efectivo' ? Number(form.principal) > 0 : form.items.some((it) => it.productId && Number(it.quantity) > 0))
   useEffect(() => {
     if (!ready) { setPreview(null); setPreviewError(''); return undefined }
     const t = setTimeout(() => {
@@ -104,18 +113,20 @@ const NewCreditPage = () => {
 
   return (
     <form className="stack" onSubmit={submit} noValidate>
-      <PageHead title="Nuevo crédito" subtitle="Elige el cliente, las condiciones y revisa el plan de cuotas antes de guardar.">
+      <PageHead title={renewId ? `Renovar crédito #${renewal?.number || ''}` : 'Nuevo crédito'} subtitle={renewId ? 'El nuevo crédito descuenta el saldo del actual y entrega el restante en efectivo.' : 'Elige el cliente, las condiciones y revisa el plan de cuotas antes de guardar.'}>
         <button type="button" className="btn btn-ghost" onClick={() => navigate(-1)}><MdArrowBack /> Volver</button>
       </PageHead>
+      {renewId && renewal && !renewal.canRenew && <div className="alert bad">No se puede renovar. {renewal.reason}</div>}
+      {renewal?.canRenew && <div className="alert info"><MdAutorenew /> Saldo actual del crédito #{renewal.number}: <strong>{formatMoney(renewal.payoff)}</strong>. Se descuenta del nuevo préstamo y el crédito #{renewal.number} queda cerrado como renovado.</div>}
       <div className="grid grid-2-1">
         <div className="stack">
-          <Card title="1. Cliente y tipo de crédito">
+          <Card title={renewId ? '1. Cliente y nuevo préstamo' : '1. Cliente y tipo de crédito'}>
             <div className="form-grid">
               <div className="span-2"><Field label="Cliente" htmlFor="nc" required>
-                <CustomerPicker id="nc" value={customer} onChange={pickCustomer} />
+                <CustomerPicker id="nc" value={customer} onChange={pickCustomer} locked={Boolean(renewId)} />
               </Field></div>
-              <div className="span-2"><Tabs value={form.kind} onChange={(v) => setForm((f) => ({ ...f, kind: v, items: v === 'producto' && !f.items.length ? [{ productId: '', quantity: 1 }] : f.items }))} tabs={[['efectivo', 'Crédito en efectivo'], ['producto', 'Crédito de producto']]} /></div>
-              {form.kind === 'efectivo' && <Field label="Valor del préstamo" htmlFor="np" required><MoneyInput id="np" value={form.principal} onChange={set('principal')} /></Field>}
+              {!renewId && <div className="span-2"><Tabs value={form.kind} onChange={(v) => setForm((f) => ({ ...f, kind: v, items: v === 'producto' && !f.items.length ? [{ productId: '', quantity: 1 }] : f.items }))} tabs={[['efectivo', 'Crédito en efectivo'], ['producto', 'Crédito de producto']]} /></div>}
+              {form.kind === 'efectivo' && <Field label={renewId ? 'Valor del nuevo préstamo' : 'Valor del préstamo'} htmlFor="np" required hint={renewal?.canRenew ? `Debe ser mayor que el saldo actual (${formatMoney(renewal.payoff)})` : null}><MoneyInput id="np" value={form.principal} onChange={set('principal')} /></Field>}
               {admin && (
                 <Field label="Prestamista que cobra" htmlFor="nl" hint="Por defecto, el asignado al cliente">
                   <select id="nl" value={form.lenderId} onChange={set('lenderId')}><option value="">{customer?.lender ? `Asignado: ${customer.lender.fullName}` : 'Sin asignar'}</option>{lenders.map((l) => <option key={l.id} value={l.id}>{l.fullName}</option>)}</select>
@@ -219,18 +230,20 @@ const NewCreditPage = () => {
                 <div><dt>Primera / última</dt><dd>{formatDate(preview.firstDueDate)} / {formatDate(preview.lastDueDate)}</dd></div>
                 <div className="total"><dt>Valor de la cuota</dt><dd className="money">{formatMoney(preview.installmentAmount)}</dd></div>
                 <div className="total"><dt>Total a pagar</dt><dd className="money">{formatMoney(preview.totalAmount)}</dd></div>
-                {form.kind === 'efectivo' && <div className="total"><dt>Se entrega en efectivo</dt><dd className="money text-ok">{formatMoney(preview.disbursedAmount)}</dd></div>}
+                {preview.renewal && <div><dt>Saldo crédito #{preview.renewal.number}</dt><dd className="money">− {formatMoney(preview.renewal.payoff)}</dd></div>}
+                {form.kind === 'efectivo' && <div className="total"><dt>Se entrega en efectivo</dt><dd className={`money ${preview.renewal && preview.renewal.net <= 0 ? 'text-bad' : 'text-ok'}`}>{formatMoney(preview.renewal ? preview.renewal.net : preview.disbursedAmount)}</dd></div>}
               </dl>
             )}
             {preview?.funds && (
               <div className={`funds-note${preview.funds.enough ? '' : ' bad'}`} style={{ marginTop: 12 }}>
                 <MdSavings />
                 <span>{preview.funds.account === 'negocio' ? 'Disponible en el negocio' : 'Disponible en la caja del prestamista'}: <strong>{formatMoney(preview.funds.available)}</strong>
-                  {!preview.funds.enough && <> · No alcanza para entregar {formatMoney(preview.disbursedAmount)}. {admin ? 'Asígnale más dinero en Capital y cajas.' : 'Pide al administrador que te asigne más dinero.'}</>}</span>
+                  {!preview.funds.enough && <> · No alcanza para entregar {formatMoney(preview.renewal ? preview.renewal.net : preview.disbursedAmount)}. {admin ? 'Asígnale más dinero en Capital y cajas.' : 'Pide al administrador que te asigne más dinero.'}</>}</span>
               </div>
             )}
+            {preview?.renewal && preview.renewal.net <= 0 && <div className="alert bad" style={{ marginTop: 12 }}>El nuevo préstamo debe ser mayor que el saldo actual ({formatMoney(preview.renewal.payoff)}) para entregar dinero.</div>}
             {error && <div className="alert bad" style={{ marginTop: 12 }}>{error}</div>}
-            <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: 14 }} disabled={saving || !preview || preview.funds?.enough === false}>{saving ? <Spinner /> : <MdCheck />} Crear crédito</button>
+            <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: 14 }} disabled={saving || !preview || preview.funds?.enough === false || (preview.renewal && preview.renewal.net <= 0)}>{saving ? <Spinner /> : <MdCheck />} {renewId ? 'Renovar crédito' : 'Crear crédito'}</button>
           </Card>
           {preview && <Card title="Plan de cuotas" flush><ScheduleTable rows={preview.installments} limit={8} compact /></Card>}
         </div>

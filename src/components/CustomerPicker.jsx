@@ -6,7 +6,7 @@ import { formatMoney } from '../utils/format'
 
 // Buscador de clientes por nombre, apellido, documento o celular (consulta al servidor mientras se escribe).
 // Sirve igual con 10 o con 10.000 clientes: solo trae los 20 que coinciden.
-const CustomerPicker = ({ value, onChange, id = 'customer-picker', autoFocus = false, placeholder = 'Busca por nombre, documento o celular' }) => {
+const CustomerPicker = ({ value, onChange, id = 'customer-picker', autoFocus = false, placeholder = 'Busca por nombre, documento o celular', locked = false }) => {
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
   const [rows, setRows] = useState([])
@@ -44,8 +44,8 @@ const CustomerPicker = ({ value, onChange, id = 'customer-picker', autoFocus = f
         {value.photoThumb ? <img className="thumb" src={value.photoThumb} alt="" /> : <span className="thumb" />}
         <div className="grow"><strong>{value.fullName}</strong><small>{value.docType || 'CC'} {value.identification} · {value.phone}{value.address ? ` · ${value.address}` : ''}</small></div>
         <div className="right hide-sm"><small>Saldo actual</small><div className="money"><strong>{formatMoney(value.balance || 0)}</strong></div>{value.overdue > 0 && <small className="text-bad">En mora</small>}</div>
-        <button type="button" className="btn btn-sm" onClick={() => { setOpen(true); setQ('') }}>Cambiar</button>
-        <button type="button" className="btn btn-ghost btn-icon" aria-label="Quitar cliente" onClick={() => onChange(null)}><MdClose /></button>
+        {!locked && <button type="button" className="btn btn-sm" onClick={() => { setOpen(true); setQ('') }}>Cambiar</button>}
+        {!locked && <button type="button" className="btn btn-ghost btn-icon" aria-label="Quitar cliente" onClick={() => onChange(null)}><MdClose /></button>}
       </div>
     )
   }
