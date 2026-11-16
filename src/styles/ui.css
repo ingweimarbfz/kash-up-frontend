@@ -185,7 +185,7 @@ small { color: var(--muted); }
 input, select, textarea { width: 100%; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); padding: 0 12px; height: 40px; font-size: 14px; color: var(--ink); transition: border-color .15s; }
 textarea { padding: 10px 12px; height: auto; resize: vertical; }
 input:focus, select:focus, textarea:focus { border-color: var(--gray-400); }
-input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--brand); }
+input[type="checkbox"], input[type="radio"] { width: 16px; height: 16px; flex: none; accent-color: var(--brand); }
 .check { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 13.5px; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
 .form-grid .span-2 { grid-column: 1 / -1; }
@@ -599,3 +599,28 @@ small.visit-note { color: var(--ink-2) !important; display: flex !important; ali
 .site-card .site-stats strong { font-size: 15px; }
 .chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .check-list { display: grid; gap: 6px; max-height: 50vh; overflow: auto; }
+
+/* KU-018 · Notificaciones por Telegram */
+.muted { color: var(--muted); }
+.row-between.wrap, .row-end.wrap { flex-wrap: wrap; }
+.steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 13.5px; color: var(--text); }
+.steps code { background: var(--gray-100); padding: 1px 6px; border-radius: 6px; font-size: 12.5px; }
+.tg-bot { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.tg-bot > div { display: grid; min-width: 0; }
+.tg-bot small { color: var(--muted); overflow-wrap: anywhere; }
+.tg-avatar { width: 42px; height: 42px; border-radius: 50%; background: #229ED9; color: #fff; display: grid; place-items: center; font-size: 20px; flex: none; }
+.tg-sections { display: grid; gap: 0; }
+.tg-section { padding: 14px 0; border-top: 1px solid var(--line); display: grid; gap: 8px; }
+.tg-section:first-child { border-top: 0; padding-top: 0; }
+.tg-section > .row-between > div { display: grid; gap: 2px; min-width: 0; flex: 1 1 240px; }
+.tg-channels { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.tg-channels li { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #FAFAFA; }
+.tg-channels li.off { opacity: .6; }
+.tg-ch-name { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; min-width: 0; flex-wrap: wrap; }
+.tg-ch-name svg { color: #229ED9; }
+.tg-sched { display: grid; gap: 8px; align-content: start; padding: 14px; border: 1px solid var(--line); border-radius: 12px; }
+.tg-sched .check svg { vertical-align: -3px; color: var(--brand-600); }
+.tg-sched button { justify-self: start; }
+.tg-groups { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.tg-group { display: grid; gap: 8px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.tg-group button { justify-self: start; }
