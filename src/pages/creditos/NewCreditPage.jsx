@@ -29,7 +29,7 @@ const NewCreditPage = () => {
   const [lenders, setLenders] = useState([])
   const [warehouses, setWarehouses] = useState([])
   const [form, setForm] = useState({
-    customerId: params.get('cliente') || '', kind: 'efectivo', principal: '', items: [], warehouseId: '', discountId: '', downPayment: '',
+    customerId: params.get('cliente') || '', kind: params.get('producto') ? 'producto' : 'efectivo', principal: '', items: params.get('producto') ? [{ productId: params.get('producto'), quantity: 1 }] : [], warehouseId: '', discountId: '', downPayment: '',
     interestRateId: '', method: 'fija', rate: '', rateBasis: 'mensual', frequency: 'diaria', customDays: 10, count: 30, skipSundays: true,
     disbursementDate: today(), firstDueDate: '', lenderId: '', notes: '', references: [{ ...EMPTY_REF }]
   })
@@ -114,7 +114,7 @@ const NewCreditPage = () => {
 
   const productTotal = form.items.reduce((s, it) => {
     const p = products.find((x) => String(x.id) === String(it.productId))
-    return s + (p ? (it.unitPrice !== undefined && it.unitPrice !== '' ? Number(it.unitPrice) : p.price) * (Number(it.quantity) || 0) : 0)
+    return s + (p ? (it.unitPrice !== undefined && it.unitPrice !== '' ? Number(it.unitPrice) : (p.finalPrice ?? p.price)) * (Number(it.quantity) || 0) : 0)
   }, 0)
 
   return (
@@ -167,10 +167,10 @@ const NewCreditPage = () => {
                     <div key={i} className="item-row">
                       <select value={it.productId} onChange={(e) => setItem(i, 'productId', e.target.value)} aria-label="Producto">
                         <option value="">Producto…</option>
-                        {products.map((x) => <option key={x.id} value={x.id} disabled={!x.stock}>{x.name} · {formatMoney(x.price)} · {x.stock} disp.</option>)}
+                        {products.map((x) => <option key={x.id} value={x.id} disabled={!x.stock}>{x.promo ? `${x.promo.emoji || '🏷️'} ` : ''}{x.name} · {formatMoney(x.finalPrice ?? x.price)}{x.promo ? ` (antes ${formatMoney(x.price)})` : ''} · {x.stock} disp.</option>)}
                       </select>
                       <input type="number" min="1" max={p?.stock || undefined} value={it.quantity} onChange={(e) => setItem(i, 'quantity', e.target.value)} aria-label="Cantidad" />
-                      {admin ? <MoneyInput value={it.unitPrice ?? p?.price ?? ''} onChange={(v) => setItem(i, 'unitPrice', v)} aria-label="Precio unitario" /> : <span className="money">{p ? formatMoney(p.price) : '—'}</span>}
+                      {admin ? <MoneyInput value={it.unitPrice ?? p?.finalPrice ?? p?.price ?? ''} onChange={(v) => setItem(i, 'unitPrice', v)} aria-label="Precio unitario" /> : <span className="money">{p ? formatMoney(p.finalPrice ?? p.price) : '—'}</span>}
                       <button type="button" className="btn btn-ghost btn-icon" onClick={() => setForm((f) => ({ ...f, items: f.items.filter((_, j) => j !== i) }))} aria-label="Quitar"><MdDelete /></button>
                     </div>
                   )

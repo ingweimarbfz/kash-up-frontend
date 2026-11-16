@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   MdAdd, MdEdit, MdSearch, MdInventory2, MdSwapVert, MdLocalOffer, MdCategory, MdWarningAmber, MdWarehouse, MdLocalShipping,
-  MdMoveToInbox, MdPerson, MdPlace, MdStore, MdArrowForward
+  MdMoveToInbox, MdPerson, MdPlace, MdStore, MdArrowForward, MdVisibility
 } from 'react-icons/md'
 import api, { errorMessage } from '../../api/client'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { PromotionsTab, PromoTag, PromoPrice } from './promotions'
 import { Badge, Card, Empty, Field, Kpi, Modal, PageHead, Spinner, useToast } from '../../components/ui'
 import { MoneyInput, PhotoInput, Tabs } from '../../components/forms'
 import { DonutChart } from '../../components/charts'
@@ -17,7 +19,11 @@ import {
 // ---------------------------------------------------------------- Producto
 const ProductForm = ({ initial, categories, sites, warehouses, general, onClose, onSaved }) => {
   const editing = Boolean(initial?.id)
-  const [form, setForm] = useState({ sku: '', name: '', categoryId: '', brand: '', description: '', cost: '', price: '', minStock: 0, initialStock: 0, warehouseId: general?.id || '', photoUrl: null, active: true, ...(initial || {}) })
+  const [form, setForm] = useState({ sku: '', name: '', categoryId: '', brand: '', description: '', cost: '', price: '', minStock: 0, initialStock: 0, warehouseId: general?.id || '', photoUrl: null, gallery: [], active: true, ...(initial || {}) })
+  const [loadingGallery, setLoadingGallery] = useState(editing)
+  // La lista no trae la galería: al editar se carga la ficha completa.
+  useEffect(() => { if (editing) api.get(`/inventario/productos/${initial.id}`).then(({ data }) => setForm((f) => ({ ...f, gallery: data.gallery || [] }))).finally(() => setLoadingGallery(false)) }, [editing, initial?.id])
+  const setGallery = (i) => (v) => setForm((f) => { const g = [...(f.gallery || [])]; g[i] = v; return { ...f, gallery: g } })
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e?.target ? (e.target.type === 'checkbox' ? e.target.checked : e.target.value) : e }))
@@ -26,7 +32,9 @@ const ProductForm = ({ initial, categories, sites, warehouses, general, onClose,
     if (!form.categoryId) return setError('Selecciona la categoría del producto. Si no existe, créala en "Categorías y descuentos".')
     setSaving(true)
     try {
-      const { data } = editing ? await api.put(`/inventario/productos/${initial.id}`, form) : await api.post('/inventario/productos', form)
+      const body = { ...form, gallery: (form.gallery || []).filter(Boolean) }
+      if (loadingGallery) delete body.gallery
+      const { data } = editing ? await api.put(`/inventario/productos/${initial.id}`, body) : await api.post('/inventario/productos', body)
       onSaved(data, editing)
     } catch (err) { setError(errorMessage(err)); setSaving(false) }
   }
@@ -36,7 +44,10 @@ const ProductForm = ({ initial, categories, sites, warehouses, general, onClose,
     <Modal size="lg" title={editing ? 'Editar producto' : 'Nuevo producto'} onClose={onClose}
       footer={<><button type="button" className="btn" onClick={onClose}>Cancelar</button><button type="submit" form="product-form" className="btn btn-primary" disabled={saving}>{saving && <Spinner />} Guardar</button></>}>
       <form id="product-form" className="form-grid" onSubmit={submit} noValidate>
-        <div className="span-2"><PhotoInput value={form.photoUrl} round={false} label="Foto del producto" onChange={set('photoUrl')} /></div>
+        <div className="span-2"><PhotoInput value={form.photoUrl} round={false} label="Foto principal" onChange={set('photoUrl')} /></div>
+        <div className="span-2"><Field label="Imágenes adicionales (opcionales, hasta 3)" hint="Otros ángulos, detalles o el producto en uso. Se ven en la ficha del producto.">
+          {loadingGallery ? <Spinner /> : <div className="gallery-inputs">{[0, 1, 2].map((i) => <PhotoInput key={i} value={form.gallery?.[i] || null} round={false} label={`Imagen ${i + 2}`} onChange={setGallery(i)} />)}</div>}
+        </Field></div>
         <Field label="Nombre" htmlFor="pn" required><input id="pn" value={form.name} onChange={set('name')} /></Field>
         <Field label="Categoría" htmlFor="pc" required hint={activeCats.length ? null : 'Primero crea una categoría'}>
           <select id="pc" value={form.categoryId || ''} onChange={set('categoryId')}><option value="">Selecciona…</option>{activeCats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
@@ -125,7 +136,7 @@ const StockTab = ({ place, categories, admin, onMove }) => {
     <Card flush>
       <div className="toolbar">
         <div className="input-icon grow"><MdSearch /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por nombre, código o marca" /></div>
-        <select value={cat} onChange={(e) => setCat(e.target.value)} aria-label="Categoría"><option value="">Todas las categorías</option><option value="bajo">Con stock bajo</option>{(categories || []).map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}</select>
+        <select value={cat} onChange={(e) => setCat(e.target.value)} aria-label="Categoría"><option value="">Todas las categorías</option><option value="bajo">Con stock bajo</option><option value="promo">En promoción</option>{(categories || []).map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}</select>
         {admin && <button type="button" className="btn" onClick={onMove}><MdMoveToInbox /> Entrada</button>}
       </div>
       {!rows ? <div className="splash" style={{ minHeight: 160 }}><Spinner /></div>
@@ -150,9 +161,10 @@ const StockTab = ({ place, categories, admin, onMove }) => {
 
 // ---------------------------------------------------------------- Catálogo de productos
 const ProductsTab = ({ admin, products, categories, onEdit, onNew }) => {
+  const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [cat, setCat] = useState('')
-  const shown = useMemo(() => (products || []).filter((p) => (!cat || (cat === 'bajo' ? p.lowStock : String(p.categoryId) === cat)) && (!query || `${p.name} ${p.sku || ''} ${p.brand || ''}`.toLowerCase().includes(query.toLowerCase()))), [products, query, cat])
+  const shown = useMemo(() => (products || []).filter((p) => (!cat || (cat === 'bajo' ? p.lowStock : cat === 'promo' ? p.promo : String(p.categoryId) === cat)) && (!query || `${p.name} ${p.sku || ''} ${p.brand || ''}`.toLowerCase().includes(query.toLowerCase()))), [products, query, cat])
   return (
     <Card flush>
       <div className="toolbar">
@@ -163,16 +175,16 @@ const ProductsTab = ({ admin, products, categories, onEdit, onNew }) => {
       {!products ? <div className="splash" style={{ minHeight: 160 }}><Spinner /></div>
         : !shown.length ? <Empty icon={<MdInventory2 />}>{products.length ? 'Ningún producto coincide.' : 'Aún no hay productos.'}</Empty> : (
           <div className="table-wrap"><table className="table">
-            <thead><tr><th>Producto</th><th className="hide-sm">Categoría</th><th className="num hide-md">Costo</th><th className="num">Precio</th><th className="num">Total</th><th className="hide-md">Por bodega</th>{admin && <th />}</tr></thead>
+            <thead><tr><th>Producto</th><th className="hide-sm">Categoría</th><th className="num hide-md">Costo</th><th className="num">Precio</th><th className="num">Total</th><th className="hide-md">Por bodega</th><th /></tr></thead>
             <tbody>{shown.map((p) => (
               <tr key={p.id}>
-                <td><div className="person">{p.photoUrl ? <img className="thumb sq" src={p.photoUrl} alt="" /> : <span className="thumb sq" />}<div><strong>{p.name}</strong><small>{[p.sku, p.brand].filter(Boolean).join(' · ') || '—'}{!p.active && ' · inactivo'}</small></div></div></td>
+                <td><div className="person">{p.photoUrl ? <img className="thumb sq" src={p.photoUrl} alt="" /> : <span className="thumb sq" />}<div><button type="button" className="link-btn" onClick={() => navigate(`/inventario/productos/${p.id}`)}><strong>{p.name}</strong></button>{p.promo && <> <PromoTag p={p.promo} size="sm" /></>}<small>{[p.sku, p.brand].filter(Boolean).join(' · ') || '—'}{!p.active && ' · inactivo'}</small></div></div></td>
                 <td className="hide-sm"><Badge>{p.category}</Badge></td>
                 <td className="num money hide-md">{formatMoney(p.cost)}</td>
-                <td className="num money">{formatMoney(p.price)}</td>
+                <td className="num money"><PromoPrice product={p} /></td>
                 <td className="num"><strong>{p.stock}</strong></td>
                 <td className="hide-md"><small>{p.byWarehouse?.length ? p.byWarehouse.map((w) => `${w.name}: ${w.stock}`).join(' · ') : '—'}</small></td>
-                {admin && <td className="right"><button type="button" className="btn btn-ghost btn-icon" title="Editar" aria-label="Editar" onClick={() => onEdit(p)}><MdEdit /></button></td>}
+                <td className="right nowrap"><button type="button" className="btn btn-ghost btn-icon" title="Ver producto" aria-label="Ver producto" onClick={() => navigate(`/inventario/productos/${p.id}`)}><MdVisibility /></button>{admin && <button type="button" className="btn btn-ghost btn-icon" title="Editar" aria-label="Editar" onClick={() => onEdit(p)}><MdEdit /></button>}</td>
               </tr>
             ))}</tbody>
           </table></div>
@@ -354,13 +366,13 @@ const CatalogsTab = ({ admin, categories, reloadCategories, toast }) => {
 }
 
 // ---------------------------------------------------------------- Página
-const TABS = [['resumen', 'Resumen'], ['existencias', 'Existencias'], ['productos', 'Productos'], ['movimientos', 'Movimientos'], ['bodegas', 'Sedes y bodegas'], ['catalogos', 'Categorías y descuentos']]
+const TABS = [['resumen', 'Resumen'], ['existencias', 'Existencias'], ['productos', 'Productos'], ['promociones', 'Promociones'], ['movimientos', 'Movimientos'], ['bodegas', 'Sedes y bodegas'], ['catalogos', 'Categorías y descuentos']]
 const PLACE_TABS = ['resumen', 'existencias', 'movimientos']
 
 const InventoryPage = () => {
   const { user } = useAuth()
   const admin = user.role === 'administrador'
-  const [tab, setTab] = useState('resumen')
+  const [tab, setTab] = useState(() => new URLSearchParams(window.location.search).get('tab') || 'resumen')
   const [place, setPlace] = useState({ sede: '', bodega: '' })
   const [categories, setCategories] = useState(null)
   const [products, setProducts] = useState(null)
@@ -390,6 +402,7 @@ const InventoryPage = () => {
       {tab === 'resumen' && <SummaryTab key={version} place={place} warehouses={warehouses} go={go} />}
       {tab === 'existencias' && <StockTab key={version} place={place} categories={categories} admin={admin} onMove={() => setModal('move')} />}
       {tab === 'productos' && <ProductsTab admin={admin} products={products} categories={categories} onNew={() => setModal({ product: {} })} onEdit={(p) => setModal({ product: p })} />}
+      {tab === 'promociones' && <PromotionsTab admin={admin} categories={categories} products={products} toast={toast} onChanged={loadProducts} />}
       {tab === 'movimientos' && <MovementsTab place={place} version={version} />}
       {tab === 'bodegas' && <PlacesTab admin={admin} sites={sites} warehouses={warehouses} reload={reloadPlaces} toast={toast} go={go} />}
       {tab === 'catalogos' && <CatalogsTab admin={admin} categories={categories} reloadCategories={loadCategories} toast={toast} />}
