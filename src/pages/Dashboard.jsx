@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { MdAccountBalanceWallet, MdPayments, MdWarningAmber, MdRequestQuote, MdPeople, MdBadge, MdRoute, MdEventAvailable, MdSavings, MdCheckCircle, MdAccountBalance, MdLockOutline, MdChevronRight, MdEventNote, MdShield, MdNotificationsActive } from 'react-icons/md'
 import api, { errorMessage, getSiteFilter } from '../api/client'
 import { goToSite } from './sedes/SitesPage'
@@ -197,6 +197,12 @@ const ClientDashboard = ({ d }) => (
 
 const Dashboard = () => {
   const { user } = useAuth()
+  // El conductor no tiene tablero: su inicio es el reporte de su vehículo.
+  if (user.role === 'conductor') return <Navigate to="/vehiculos" replace />
+  return <RoleDashboard user={user} />
+}
+
+const RoleDashboard = ({ user }) => {
   const [data, setData] = useState(null)
   const [extra, setExtra] = useState(null)
   const [error, setError] = useState('')

@@ -40,6 +40,7 @@ const ReportsPage = lazy(() => import('./pages/reportes/ReportsPage'))
 const CustomerDetail = lazy(() => import('./pages/clientes/CustomerDetail'))
 
 const STAFF = ['administrador', 'prestamista']
+const FLEET = ['administrador', 'prestamista', 'conductor']
 
 const Splash = () => <div className="splash"><Spinner /></div>
 
@@ -95,8 +96,8 @@ const App = () => (
               <Route path="morosos" element={<Protected roles={STAFF}><DelinquentPage /></Protected>} />
               <Route path="mapa" element={<Protected roles={STAFF}><MapPage /></Protected>} />
               <Route path="reportes" element={<Protected roles={['administrador']}><ReportsPage /></Protected>} />
-              <Route path="vehiculos" element={<Protected roles={STAFF}><VehiclesPage /></Protected>} />
-              <Route path="vehiculos/:id" element={<Protected roles={STAFF}><VehicleDetail /></Protected>} />
+              <Route path="vehiculos" element={<Protected roles={FLEET}><VehiclesPage /></Protected>} />
+              <Route path="vehiculos/:id" element={<Protected roles={FLEET}><VehicleDetail /></Protected>} />
               <Route path="conductores" element={<Protected roles={['administrador']}><DriversPage /></Protected>} />
               <Route path="mis-pagos" element={<Protected roles={['cliente']}><MyPaymentsPage /></Protected>} />
               <Route path="mis-creditos" element={<Protected roles={['cliente']}><MyCreditsPage /></Protected>} />
