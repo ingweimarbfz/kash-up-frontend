@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { MdAdd, MdDelete, MdArrowBack, MdCheck, MdPayments, MdInventory2 } from 'react-icons/md'
+import { MdAdd, MdDelete, MdArrowBack, MdCheck, MdPayments, MdInventory2, MdSavings } from 'react-icons/md'
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
 import { Card, Field, PageHead, Spinner } from '../../components/ui'
@@ -9,6 +9,7 @@ import ScheduleTable from '../../components/ScheduleTable'
 import { FREQUENCIES, FREQ_LABEL, METHODS, METHOD_LABEL, rateText } from '../../utils/credit'
 import { formatDate, formatMoney } from '../../utils/format'
 import { DiscountChip } from '../inventario/common'
+import CustomerPicker from '../../components/CustomerPicker'
 
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date())
 const EMPTY_REF = { name: '', phone: '', relationship: '', address: '' }
@@ -18,7 +19,7 @@ const NewCreditPage = () => {
   const admin = user.role === 'administrador'
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const [customers, setCustomers] = useState([])
+  const [customer, setCustomer] = useState(null)
   const [rates, setRates] = useState([])
   const [products, setProducts] = useState([])
   const [discounts, setDiscounts] = useState([])
@@ -36,7 +37,15 @@ const NewCreditPage = () => {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    api.get('/clientes').then(({ data }) => setCustomers(data.filter((c) => c.status === 'activo'))).catch(() => {})
+    // Cliente que llega desde su ficha (?cliente=ID).
+    const pre = params.get('cliente')
+    if (pre) {
+      api.get(`/clientes/${pre}`).then(({ data: c }) => {
+        if (c.status !== 'activo') return
+        const act = (c.credits || []).filter((k) => k.status === 'activo')
+        setCustomer({ ...c, activeCredits: act.length, balance: act.reduce((s, k) => s + k.balance, 0), overdue: act.reduce((s, k) => s + k.overdue, 0) })
+      }).catch(() => {})
+    }
     api.get('/tasas', { params: { activas: 1 } }).then(({ data }) => setRates(data)).catch(() => {})
     api.get('/descuentos', { params: { activos: 1 } }).then(({ data }) => setDiscounts(data)).catch(() => {})
     api.get('/inventario/bodegas', { params: { activas: 1 } }).then(({ data }) => {
@@ -53,7 +62,7 @@ const NewCreditPage = () => {
   }, [form.warehouseId])
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e?.target ? (e.target.type === 'checkbox' ? e.target.checked : e.target.value) : e }))
-  const customer = customers.find((c) => String(c.id) === String(form.customerId))
+  const pickCustomer = (c) => { setCustomer(c); setForm((f) => ({ ...f, customerId: c ? String(c.id) : '' })) }
   const pickRate = (e) => {
     const r = rates.find((x) => String(x.id) === e.target.value)
     setForm((f) => (r ? { ...f, interestRateId: e.target.value, method: r.method, rate: r.rate, rateBasis: r.rateBasis, frequency: r.defaultFrequency || f.frequency } : { ...f, interestRateId: '' }))
@@ -103,18 +112,8 @@ const NewCreditPage = () => {
           <Card title="1. Cliente y tipo de crédito">
             <div className="form-grid">
               <div className="span-2"><Field label="Cliente" htmlFor="nc" required>
-                <select id="nc" value={form.customerId} onChange={set('customerId')}>
-                  <option value="">Selecciona un cliente…</option>
-                  {customers.map((c) => <option key={c.id} value={c.id}>{c.fullName} · {c.identification}{c.activeCredits ? ` · ${c.activeCredits} crédito(s) activo(s)` : ''}</option>)}
-                </select>
+                <CustomerPicker id="nc" value={customer} onChange={pickCustomer} />
               </Field></div>
-              {customer && (
-                <div className="span-2 person" style={{ background: 'var(--gray-100)', padding: 10, borderRadius: 10 }}>
-                  <img className="thumb" src={customer.photoThumb} alt="" />
-                  <div style={{ flex: 1 }}><strong>{customer.fullName}</strong><small>{customer.phone} · {customer.address}</small></div>
-                  <div className="right"><small>Saldo actual</small><div className="money"><strong>{formatMoney(customer.balance)}</strong></div>{customer.overdue > 0 && <small className="text-bad">En mora</small>}</div>
-                </div>
-              )}
               <div className="span-2"><Tabs value={form.kind} onChange={(v) => setForm((f) => ({ ...f, kind: v, items: v === 'producto' && !f.items.length ? [{ productId: '', quantity: 1 }] : f.items }))} tabs={[['efectivo', 'Crédito en efectivo'], ['producto', 'Crédito de producto']]} /></div>
               {form.kind === 'efectivo' && <Field label="Valor del préstamo" htmlFor="np" required><MoneyInput id="np" value={form.principal} onChange={set('principal')} /></Field>}
               {admin && (
@@ -223,8 +222,15 @@ const NewCreditPage = () => {
                 {form.kind === 'efectivo' && <div className="total"><dt>Se entrega en efectivo</dt><dd className="money text-ok">{formatMoney(preview.disbursedAmount)}</dd></div>}
               </dl>
             )}
+            {preview?.funds && (
+              <div className={`funds-note${preview.funds.enough ? '' : ' bad'}`} style={{ marginTop: 12 }}>
+                <MdSavings />
+                <span>{preview.funds.account === 'negocio' ? 'Disponible en el negocio' : 'Disponible en la caja del prestamista'}: <strong>{formatMoney(preview.funds.available)}</strong>
+                  {!preview.funds.enough && <> · No alcanza para entregar {formatMoney(preview.disbursedAmount)}. {admin ? 'Asígnale más dinero en Capital y cajas.' : 'Pide al administrador que te asigne más dinero.'}</>}</span>
+              </div>
+            )}
             {error && <div className="alert bad" style={{ marginTop: 12 }}>{error}</div>}
-            <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: 14 }} disabled={saving || !preview}>{saving ? <Spinner /> : <MdCheck />} Crear crédito</button>
+            <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: 14 }} disabled={saving || !preview || preview.funds?.enough === false}>{saving ? <Spinner /> : <MdCheck />} Crear crédito</button>
           </Card>
           {preview && <Card title="Plan de cuotas" flush><ScheduleTable rows={preview.installments} limit={8} compact /></Card>}
         </div>

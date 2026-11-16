@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { MdAccountBalanceWallet, MdPayments, MdWarningAmber, MdRequestQuote, MdPeople, MdBadge, MdRoute, MdEventAvailable, MdSavings, MdCheckCircle } from 'react-icons/md'
+import { MdAccountBalanceWallet, MdPayments, MdWarningAmber, MdRequestQuote, MdPeople, MdBadge, MdRoute, MdEventAvailable, MdSavings, MdCheckCircle, MdAccountBalance } from 'react-icons/md'
 import api, { errorMessage } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { Card, Kpi, PageHead, Spinner, Empty } from '../components/ui'
@@ -20,6 +20,7 @@ const AdminDashboard = ({ d }) => (
       <Kpi label="Recaudo de hoy" value={formatMoney(d.kpis.recaudoHoy)} icon={MdPayments} tone="brand" note="Pagos registrados hoy" />
       <Kpi label="En mora" value={formatMoney(d.kpis.enMora)} icon={MdWarningAmber} tone="bad" note="Cuotas vencidas sin pagar" />
       <Kpi label="Créditos activos" value={d.kpis.creditosActivos} icon={MdRequestQuote} note={d.kpis.clientesEnMora ? `${d.kpis.clientesEnMora} cliente(s) en mora` : null} />
+      <Kpi label="Saldo del negocio" value={formatMoney(d.kpis.saldoNegocio || 0)} icon={MdAccountBalance} note={`En cajas de prestamistas ${formatMoney(d.kpis.cajasPrestamistas || 0)}`} />
       <Kpi label="Prestamistas" value={d.kpis.prestamistas} icon={MdBadge} />
       <Kpi label="Clientes con usuario" value={d.kpis.clientes} icon={MdPeople} />
     </div>
@@ -35,6 +36,7 @@ const LenderDashboard = ({ d }) => (
     <div className="grid grid-kpi">
       <Kpi label="Por cobrar hoy" value={formatMoney(d.kpis.porCobrarHoy)} icon={MdRoute} tone="dark" note="Según tu rutero del día" />
       <Kpi label="Cobrado hoy" value={formatMoney(d.kpis.cobradoHoy)} icon={MdPayments} tone="brand" />
+      <Kpi label="Mi caja" value={formatMoney(d.kpis.miCaja || 0)} icon={MdAccountBalance} note="Disponible para prestar" />
       <Kpi label="Visitas pendientes" value={d.kpis.visitasPendientes} icon={MdEventAvailable} />
       <Kpi label="Clientes en mora" value={d.kpis.clientesEnMora} icon={MdWarningAmber} tone="bad" />
     </div>

@@ -1,6 +1,6 @@
 import {
   MdDashboard, MdPeople, MdRequestQuote, MdPayments, MdRoute, MdInventory2, MdPercent, MdBarChart,
-  MdManageAccounts, MdSettings, MdHistory, MdPerson, MdReceiptLong, MdWarningAmber, MdMap, MdSavings
+  MdManageAccounts, MdSettings, MdHistory, MdPerson, MdReceiptLong, MdWarningAmber, MdMap, MdSavings, MdAccountBalance, MdAccountBalanceWallet
 } from 'react-icons/md'
 
 export const ROLE_LABELS = { administrador: 'Administrador', prestamista: 'Prestamista', cliente: 'Cliente' }
@@ -15,7 +15,8 @@ const NAV = {
         { to: '/clientes', label: 'Clientes', icon: MdPeople },
         { to: '/creditos', label: 'Créditos', icon: MdRequestQuote },
         { to: '/tasas', label: 'Tasas y simulador', icon: MdPercent },
-        { to: '/inventario', label: 'Inventario', icon: MdInventory2 }
+        { to: '/inventario', label: 'Inventario', icon: MdInventory2 },
+        { to: '/capital', label: 'Capital y cajas', icon: MdAccountBalance }
       ]
     },
     {
@@ -43,6 +44,7 @@ const NAV = {
       title: 'Cobro',
       items: [
         { to: '/mi-ruta', label: 'Mi ruta', icon: MdRoute, soon: 'Etapa 3' },
+        { to: '/mi-caja', label: 'Mi caja', icon: MdAccountBalanceWallet },
         { to: '/clientes', label: 'Mis clientes', icon: MdPeople },
         { to: '/creditos', label: 'Créditos', icon: MdRequestQuote },
         { to: '/tasas', label: 'Simulador', icon: MdPercent },
