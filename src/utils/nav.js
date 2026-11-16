@@ -1,6 +1,6 @@
 import {
   MdDashboard, MdPeople, MdRequestQuote, MdPayments, MdRoute, MdInventory2, MdPercent, MdBarChart,
-  MdManageAccounts, MdSettings, MdHistory, MdPerson, MdReceiptLong, MdWarningAmber, MdMap, MdSavings, MdAccountBalance, MdAccountBalanceWallet, MdLockOutline, MdPlaylistAddCheck
+  MdManageAccounts, MdSettings, MdHistory, MdPerson, MdReceiptLong, MdWarningAmber, MdMap, MdSavings, MdAccountBalance, MdAccountBalanceWallet, MdLockOutline, MdPlaylistAddCheck, MdTwoWheeler
 } from 'react-icons/md'
 
 export const ROLE_LABELS = { administrador: 'Administrador', prestamista: 'Prestamista', cliente: 'Cliente' }
@@ -27,7 +27,8 @@ const NAV = {
         { to: '/pagos', label: 'Pagos', icon: MdPayments },
         { to: '/morosos', label: 'Morosos', icon: MdWarningAmber },
         { to: '/gastos', label: 'Gastos', icon: MdReceiptLong },
-        { to: '/mapa', label: 'Mapa', icon: MdMap }
+        { to: '/mapa', label: 'Mapa', icon: MdMap },
+        { to: '/vehiculos', label: 'Vehículos', icon: MdTwoWheeler }
       ]
     },
     {
@@ -55,6 +56,7 @@ const NAV = {
         { to: '/gastos', label: 'Gastos', icon: MdReceiptLong },
         { to: '/morosos', label: 'Morosos', icon: MdWarningAmber },
         { to: '/mapa', label: 'Mapa', icon: MdMap },
+        { to: '/vehiculos', label: 'Mi vehículo', icon: MdTwoWheeler },
         { to: '/cierre', label: 'Cierre de jornada', icon: MdLockOutline }
       ]
     }

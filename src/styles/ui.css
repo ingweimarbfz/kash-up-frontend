@@ -546,3 +546,25 @@ small.visit-note { color: var(--ink-2) !important; display: flex !important; ali
   .card { break-inside: avoid; box-shadow: none !important; }
 }
 .pending-alert a { font-weight: 700; color: inherit; text-decoration: underline; }
+
+/* ---------- KU-015: vehículos ---------- */
+.nowrap { white-space: nowrap; }
+.vehicle-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.vehicle-card { display: flex; flex-direction: column; text-align: left; padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; cursor: pointer; font: inherit; color: inherit; box-shadow: var(--shadow); transition: border-color .15s, transform .15s; }
+.vehicle-card:hover { border-color: var(--gray-300); transform: translateY(-1px); }
+.vehicle-photo, .vehicle-hero { position: relative; height: 150px; background: var(--gray-100); display: grid; place-items: center; color: var(--gray-400, #A1A1AA); font-size: 64px; }
+.vehicle-hero { height: 190px; }
+.vehicle-photo img, .vehicle-hero img { width: 100%; height: 100%; object-fit: cover; }
+.plate { position: absolute; left: 12px; bottom: 12px; background: #FACC15; color: #18181B; font-weight: 800; letter-spacing: .08em; font-size: 14px; padding: 4px 10px; border-radius: 6px; border: 2px solid #18181B; }
+.vehicle-body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 5px; }
+.vehicle-body small { color: var(--muted); display: flex; align-items: center; gap: 4px; }
+.vehicle-stats { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; font-weight: 600; margin-top: 4px; }
+.vehicle-alerts { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
+.vehicle-alerts li { display: flex; align-items: center; gap: 6px; }
+.vehicle-alerts li.bad { color: var(--bad); } .vehicle-alerts li.warn { color: #B45309; }
+.vehicle-alert-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.stat-list.pad { padding: 16px 20px 20px; }
+.doc-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.doc-row:last-child { border-bottom: 0; }
+.doc-row small { display: block; color: var(--muted); font-size: 12px; }
+.doc-row .right { text-align: right; }
