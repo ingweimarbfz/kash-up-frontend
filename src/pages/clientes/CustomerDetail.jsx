@@ -131,9 +131,15 @@ const CustomerDetail = () => {
         </Card>
         <div className="stack">
           <ScoreCard score={c.score} />
-          {(c.idPhotoUrl || c.notes) && (
-            <Card title="Documentos y notas">
-              {c.idPhotoUrl && <a href={c.idPhotoUrl} target="_blank" rel="noreferrer"><img src={c.idPhotoUrl} alt="Documento" style={{ width: '100%', borderRadius: 10, marginBottom: 10 }} /></a>}
+          {(c.idPhotoUrl || c.idPhotoBackUrl || c.notes) && (
+            <Card title="Documento y notas">
+              {(c.idPhotoUrl || c.idPhotoBackUrl) && (
+                <div className="doc-photos">
+                  {[['Delantera', c.idPhotoUrl], ['Trasera', c.idPhotoBackUrl]].filter(([, u]) => u).map(([label, u]) => (
+                    <a key={label} href={u} target="_blank" rel="noreferrer"><img src={u} alt={`Documento, parte ${label.toLowerCase()}`} /><span>{label}</span></a>
+                  ))}
+                </div>
+              )}
               {c.notes && <p style={{ margin: 0 }}>{c.notes}</p>}
             </Card>
           )}

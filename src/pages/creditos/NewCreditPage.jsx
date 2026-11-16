@@ -8,6 +8,7 @@ import { MoneyInput, Tabs } from '../../components/forms'
 import ScheduleTable from '../../components/ScheduleTable'
 import { FREQUENCIES, FREQ_LABEL, METHODS, METHOD_LABEL, rateText } from '../../utils/credit'
 import { formatDate, formatMoney } from '../../utils/format'
+import { DiscountChip } from '../inventario/common'
 
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date())
 const EMPTY_REF = { name: '', phone: '', relationship: '', address: '' }
@@ -22,8 +23,9 @@ const NewCreditPage = () => {
   const [products, setProducts] = useState([])
   const [discounts, setDiscounts] = useState([])
   const [lenders, setLenders] = useState([])
+  const [warehouses, setWarehouses] = useState([])
   const [form, setForm] = useState({
-    customerId: params.get('cliente') || '', kind: 'efectivo', principal: '', items: [], discountId: '', downPayment: '',
+    customerId: params.get('cliente') || '', kind: 'efectivo', principal: '', items: [], warehouseId: '', discountId: '', downPayment: '',
     interestRateId: '', method: 'fija', rate: '', rateBasis: 'mensual', frequency: 'diaria', customDays: 10, count: 30, skipSundays: true,
     disbursementDate: today(), firstDueDate: '', lenderId: '', notes: '', references: [{ ...EMPTY_REF }]
   })
@@ -36,10 +38,19 @@ const NewCreditPage = () => {
   useEffect(() => {
     api.get('/clientes').then(({ data }) => setCustomers(data.filter((c) => c.status === 'activo'))).catch(() => {})
     api.get('/tasas', { params: { activas: 1 } }).then(({ data }) => setRates(data)).catch(() => {})
-    api.get('/inventario/productos', { params: { activos: 1 } }).then(({ data }) => setProducts(data)).catch(() => {})
     api.get('/descuentos', { params: { activos: 1 } }).then(({ data }) => setDiscounts(data)).catch(() => {})
+    api.get('/inventario/bodegas', { params: { activas: 1 } }).then(({ data }) => {
+      setWarehouses(data)
+      const g = data.find((w) => w.isGeneral) || data[0]
+      if (g) setForm((f) => (f.warehouseId ? f : { ...f, warehouseId: String(g.id) }))
+    }).catch(() => {})
     if (admin) api.get('/prestamistas').then(({ data }) => setLenders(data)).catch(() => {})
   }, [admin])
+  // Los productos y su stock dependen de la bodega que entrega.
+  useEffect(() => {
+    if (!form.warehouseId) return
+    api.get('/inventario/productos', { params: { activos: 1, bodega: form.warehouseId } }).then(({ data }) => setProducts(data)).catch(() => {})
+  }, [form.warehouseId])
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e?.target ? (e.target.type === 'checkbox' ? e.target.checked : e.target.value) : e }))
   const customer = customers.find((c) => String(c.id) === String(form.customerId))
@@ -117,6 +128,13 @@ const NewCreditPage = () => {
           {form.kind === 'producto' && (
             <Card title="2. Productos del inventario" icon={<MdInventory2 />}>
               <div className="stack" style={{ gap: 10 }}>
+                <Field label="Bodega que entrega" htmlFor="nw" hint="El stock que ves es el de esta bodega">
+                  <select id="nw" value={form.warehouseId} onChange={set('warehouseId')}>
+                    {[...new Set(warehouses.map((w) => w.siteName))].map((site) => (
+                      <optgroup key={site} label={site}>{warehouses.filter((w) => w.siteName === site).map((w) => <option key={w.id} value={w.id}>{w.name}{w.isGeneral ? ' (principal)' : ''}</option>)}</optgroup>
+                    ))}
+                  </select>
+                </Field>
                 {form.items.map((it, i) => {
                   const p = products.find((x) => String(x.id) === String(it.productId))
                   return (
@@ -133,7 +151,8 @@ const NewCreditPage = () => {
                 })}
                 <div><button type="button" className="btn btn-sm" onClick={() => setForm((f) => ({ ...f, items: [...f.items, { productId: '', quantity: 1 }] }))}><MdAdd /> Agregar producto</button></div>
                 <div className="form-grid">
-                  <Field label="Descuento" htmlFor="nd"><select id="nd" value={form.discountId} onChange={set('discountId')}><option value="">Sin descuento</option>{discounts.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.type === 'porcentaje' ? `${d.value} %` : formatMoney(d.value)})</option>)}</select></Field>
+                  <Field label="Descuento" htmlFor="nd"><select id="nd" value={form.discountId} onChange={set('discountId')}><option value="">Sin descuento</option>{discounts.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.type === 'porcentaje' ? `${d.value} %` : formatMoney(d.value)})</option>)}</select>
+                    {discounts.find((d) => String(d.id) === String(form.discountId)) && <div className="disc-chip-row"><DiscountChip d={discounts.find((d) => String(d.id) === String(form.discountId))} /></div>}</Field>
                   <Field label="Cuota inicial" htmlFor="ndp"><MoneyInput id="ndp" value={form.downPayment} onChange={set('downPayment')} /></Field>
                 </div>
                 <dl className="stat-list">
