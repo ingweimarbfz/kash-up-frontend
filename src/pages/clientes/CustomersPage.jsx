@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { MdAdd, MdSearch, MdPeople, MdChevronRight } from 'react-icons/md'
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
@@ -18,6 +18,9 @@ const CustomersPage = () => {
   const [lender, setLender] = useState('')
   const [status, setStatus] = useState('')
   const [creating, setCreating] = useState(false)
+  const [qs, setQs] = useSearchParams()
+  // Acceso rápido desde el buscador (?nuevo=1).
+  useEffect(() => { if (qs.get('nuevo') === '1') { setCreating(true); setQs({}, { replace: true }) } }, [qs, setQs])
   const [toast, toastNode] = useToast()
 
   const load = useCallback(() => {

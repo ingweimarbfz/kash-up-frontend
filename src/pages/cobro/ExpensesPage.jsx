@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { MdAdd, MdReceiptLong, MdBlock, MdCheck, MdImage } from 'react-icons/md'
+import { useSearchParams } from 'react-router-dom'
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
 import { Badge, Card, Empty, Field, Kpi, Modal, PageHead, Spinner, useToast } from '../../components/ui'
@@ -50,6 +51,9 @@ const ExpensesPage = () => {
   const first = new Date(`${todayBogota()}T12:00:00`); first.setDate(1)
   const [filters, setFilters] = useState({ desde: first.toISOString().slice(0, 10), hasta: todayBogota(), prestamista: '', categoria: '' })
   const [adding, setAdding] = useState(false)
+  const [qs, setQs] = useSearchParams()
+  // Acceso rápido desde el buscador (?nuevo=1).
+  useEffect(() => { if (qs.get('nuevo') === '1') { setAdding(true); setQs({}, { replace: true }) } }, [qs, setQs])
   const [detail, setDetail] = useState(null)
   const [reason, setReason] = useState('')
   const [voiding, setVoiding] = useState(false)

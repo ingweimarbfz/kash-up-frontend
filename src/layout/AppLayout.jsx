@@ -1,11 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { MdMenu, MdChevronRight, MdLogout, MdPerson, MdKeyboardArrowDown } from 'react-icons/md'
+import { MdMenu, MdChevronRight, MdLogout, MdPerson, MdKeyboardArrowDown, MdSearch } from 'react-icons/md'
 import { useAuth } from '../context/AuthContext'
 import { useSettings } from '../context/SettingsContext'
 import { navFor, titleFor, ACCOUNT_NAV, ROLE_LABELS } from '../utils/nav'
 import { Avatar } from '../components/ui'
 import { KashLogo } from '../components/Logo'
+import SearchPalette, { useSearchShortcut } from '../components/SearchPalette'
 
 // Fecha corta: "Lun, 16 Nov 2026".
 const todayLabel = (() => {
@@ -50,6 +51,9 @@ const AppLayout = () => {
   const { settings } = useSettings()
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
+  const [searching, setSearching] = useState(false)
+  const openSearch = useCallback(() => { if (user.role !== 'cliente') setSearching(true) }, [user.role])
+  useSearchShortcut(openSearch)
   // En escritorio el botón contrae el menú (se recuerda); en celular lo abre como panel.
   const [collapsed, setCollapsed] = useState(() => { try { return localStorage.getItem('ku_sidebar') === 'off' } catch { return false } })
   const toggleMenu = () => {
@@ -117,6 +121,11 @@ const AppLayout = () => {
               <small>{settings.businessName}{section && section !== 'General' ? ` · ${section}` : ''}</small>
               <strong>{title || 'KashUp'}</strong>
             </div>
+            {user.role !== 'cliente' && (
+              <button type="button" className="topbar-search" onClick={openSearch} aria-label="Buscar (Ctrl+K)">
+                <MdSearch /> <span className="hide-sm">Buscar…</span> <kbd className="kbd hide-sm">Ctrl K</kbd>
+              </button>
+            )}
             <span className="topbar-date hide-md">{todayLabel}</span>
             <UserMenu />
           </header>
@@ -130,6 +139,7 @@ const AppLayout = () => {
         <main className="content">
           <Outlet />
         </main>
+        {searching && <SearchPalette onClose={() => setSearching(false)} />}
       </div>
     </div>
   )
