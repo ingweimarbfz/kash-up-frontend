@@ -27,7 +27,7 @@ const VehiclesPage = () => {
 
   return (
     <div className="stack">
-      <PageHead title={admin ? 'Vehículos' : 'Mi vehículo'} subtitle={admin ? 'Motos y carros de las rutas: documentos, mantenimientos, combustible y kilometraje.' : 'El vehículo con el que cobras.'}>
+      <PageHead title={admin ? 'Vehículos' : 'Mi vehículo'} subtitle={admin ? 'Motos y carros de las rutas: documentos, mantenimientos, combustible y kilometraje.' : user.role === 'conductor' ? 'Los vehículos que conduces: tanqueos, gastos y mantenimientos.' : 'El vehículo con el que cobras o que conduces.'}>
         {admin && <button type="button" className="btn" onClick={() => navigate('/conductores')}><MdBadge /> Conductores</button>}
         {admin && <button type="button" className="btn btn-primary" onClick={() => setAdding(true)}><MdAdd /> Nuevo vehículo</button>}
       </PageHead>
@@ -42,7 +42,7 @@ const VehiclesPage = () => {
       {admin && rows.length > 0 && (
         <div className="seg seg-wrap">{[['todos', 'Todos'], ['alertas', 'Con alertas'], ['activo', 'Activos'], ['taller', 'En taller'], ['inactivo', 'Inactivos']].map(([k, l]) => <button key={k} type="button" className={`btn btn-sm${filter === k ? ' on' : ''}`} onClick={() => setFilter(k)}>{l}</button>)}</div>
       )}
-      {!rows.length ? <Card><Empty icon={<MdSportsMotorsports />}>{admin ? 'Aún no hay vehículos. Registra las motos y carros de las rutas.' : 'No tienes un vehículo asignado. El administrador lo asigna en Vehículos.'}</Empty></Card> : (
+      {!rows.length ? <Card><Empty icon={<MdSportsMotorsports />}>{admin ? 'Aún no hay vehículos. Registra las motos y carros de las rutas.' : user.role === 'conductor' ? 'No tienes un vehículo asignado. El administrador te asigna como conductor en Vehículos.' : 'No tienes un vehículo asignado. El administrador lo asigna en Vehículos.'}</Empty></Card> : (
         <div className="vehicle-grid">
           {shown.map((v) => (
             <button key={v.id} type="button" className="vehicle-card" onClick={() => navigate(`/vehiculos/${v.id}`)}>

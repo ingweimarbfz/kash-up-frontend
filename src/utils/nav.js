@@ -3,7 +3,7 @@ import {
   MdManageAccounts, MdSettings, MdHistory, MdPerson, MdReceiptLong, MdWarningAmber, MdMap, MdSavings, MdAccountBalance, MdAccountBalanceWallet, MdLockOutline, MdPlaylistAddCheck, MdTwoWheeler, MdBadge, MdPlace, MdNotificationsActive
 } from 'react-icons/md'
 
-export const ROLE_LABELS = { administrador: 'Administrador', prestamista: 'Prestamista', cliente: 'Cliente' }
+export const ROLE_LABELS = { administrador: 'Administrador', prestamista: 'Prestamista', cliente: 'Cliente', conductor: 'Conductor' }
 
 // Menú por rol. Los ítems con soon: true se muestran deshabilitados con la etapa en que llegan.
 const NAV = {
@@ -64,6 +64,10 @@ const NAV = {
         { to: '/mis-notificaciones', label: 'Notificaciones', icon: MdNotificationsActive }
       ]
     }
+  ],
+  // Conductor (KU-021): solo el reporte de su vehículo.
+  conductor: [
+    { title: 'Mi vehículo', items: [{ to: '/vehiculos', label: 'Mi vehículo', icon: MdTwoWheeler }] }
   ],
   cliente: [
     { title: 'General', items: [{ to: '/', label: 'Mi resumen', icon: MdDashboard, end: true }] },

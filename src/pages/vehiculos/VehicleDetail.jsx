@@ -55,9 +55,11 @@ const VehicleDetail = () => {
       <PageHead title={`${v.plate} · Móvil ${v.code}`} subtitle={[v.kindLabel, v.brand, v.line, v.modelYear, v.color].filter(Boolean).join(' · ')}>
         {admin && <button type="button" className="btn btn-ghost" onClick={() => navigate('/vehiculos')}><MdArrowBack /> Vehículos</button>}
         {admin && <button type="button" className="btn" onClick={() => setEditing(true)}><MdEdit /> Editar</button>}
-        <button type="button" className="btn" onClick={() => setLog('kilometraje')}><MdSpeed /> Kilometraje</button>
-        <button type="button" className="btn" onClick={() => setLog('mantenimientos')}><MdBuild /> Mantenimiento</button>
-        <button type="button" className="btn btn-primary" onClick={() => setLog('tanqueos')}><MdLocalGasStation /> Tanqueo</button>
+        {user.role !== 'conductor' && <>
+          <button type="button" className="btn" onClick={() => setLog('kilometraje')}><MdSpeed /> Kilometraje</button>
+          <button type="button" className="btn" onClick={() => setLog('mantenimientos')}><MdBuild /> Mantenimiento</button>
+          <button type="button" className="btn btn-primary" onClick={() => setLog('tanqueos')}><MdLocalGasStation /> Tanqueo</button>
+        </>}
       </PageHead>
 
       {v.alerts.length > 0
