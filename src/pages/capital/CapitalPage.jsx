@@ -74,19 +74,22 @@ const CapitalPage = () => {
   const lender = modal?.lender
   return (
     <div className="stack">
-      <PageHead title="Capital y cajas" subtitle="Dinero del negocio y lo que cada prestamista tiene para prestar. Sin saldo no se puede prestar ni asignar.">
+      <PageHead title={b.site ? `Capital de ${b.site.name}` : 'Capital y cajas'} subtitle={b.site ? 'Esta sede maneja su capital aparte: los aportes, retiros y asignaciones de sus ruteros salen de aquí.' : 'Dinero del negocio y lo que cada prestamista tiene para prestar. Sin saldo no se puede prestar ni asignar.'}>
         <button type="button" className="btn" onClick={() => setModal({ kind: 'retiro' })}><MdRemove /> Retiro</button>
         <button type="button" className="btn btn-primary" onClick={() => setModal({ kind: 'aporte' })}><MdAdd /> Aporte de capital</button>
       </PageHead>
 
       <div className="grid grid-kpi">
         <Kpi label="Capital aportado" value={formatMoney(b.capital)} icon={MdAccountBalance} note="Aportes menos retiros" />
-        <Kpi label="Saldo del negocio" value={formatMoney(b.balance)} tone="dark" note="Sin asignar a prestamistas" />
+        <Kpi label={b.site ? `Saldo de ${b.site.name}` : 'Saldo del negocio'} value={formatMoney(b.balance)} tone="dark" note="Sin asignar a prestamistas" />
         <Kpi label={`Reserva mínima (${b.reservePct} %)`} value={formatMoney(b.reserve)} icon={MdShield} note="No se puede usar" />
         <Kpi label="Disponible para asignar" value={formatMoney(b.available)} tone="brand" icon={MdSavings} />
         <Kpi label="En cajas de prestamistas" value={formatMoney(data.totals.lendersBalance)} note={`Cartera en la calle ${formatMoney(data.totals.portfolio)}`} icon={MdTrendingUp} />
       </div>
 
+      {data.siteAccounts?.length > 0 && (
+        <div className="alert info"><MdAccountBalance /> <span>Sedes con capital aparte: {data.siteAccounts.map((a) => `${a.siteName} (${formatMoney(a.balance)})`).join(', ')}. Sus ruteros reciben y devuelven dinero de ese capital; elige la sede arriba para hacerle aportes o retiros.</span></div>
+      )}
       <div className="reserve-bar" aria-label="Uso del saldo del negocio">
         <div className="reserve-track">
           <span className="used" style={{ width: `${b.balance ? Math.min(100, (b.available / b.balance) * 100) : 0}%` }} />

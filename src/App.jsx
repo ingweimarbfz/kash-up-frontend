@@ -32,6 +32,7 @@ const RequestsPage = lazy(() => import('./pages/creditos/RequestsPage'))
 const VehiclesPage = lazy(() => import('./pages/vehiculos/VehiclesPage'))
 const VehicleDetail = lazy(() => import('./pages/vehiculos/VehicleDetail'))
 const DriversPage = lazy(() => import('./pages/vehiculos/DriversPage'))
+const SitesPage = lazy(() => import('./pages/sedes/SitesPage'))
 const ReportsPage = lazy(() => import('./pages/reportes/ReportsPage'))
 const CustomerDetail = lazy(() => import('./pages/clientes/CustomerDetail'))
 
@@ -65,6 +66,7 @@ const App = () => (
             <Route element={<Protected><AppLayout /></Protected>}>
               <Route index element={<Dashboard />} />
               <Route path="perfil" element={<ProfilePage />} />
+              <Route path="sedes" element={<Protected roles={['administrador']}><SitesPage /></Protected>} />
               <Route path="usuarios" element={<Protected roles={['administrador']}><UsersPage /></Protected>} />
               <Route path="configuracion" element={<Protected roles={['administrador']}><SettingsPage /></Protected>} />
               <Route path="auditoria" element={<Protected roles={['administrador']}><AuditPage /></Protected>} />

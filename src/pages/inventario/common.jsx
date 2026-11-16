@@ -183,7 +183,7 @@ export const TransferModal = ({ products, sites, warehouses, defaults = {}, onCl
 // ---------- Sede y bodega ----------
 export const SiteForm = ({ initial, onClose, onSaved }) => {
   const editing = Boolean(initial?.id)
-  const [f, setF] = useState({ name: '', city: '', address: '', phone: '', active: true, ...(initial || {}) })
+  const [f, setF] = useState({ name: '', city: '', address: '', phone: '', active: true, ownCapital: false, ...(initial || {}) })
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const set = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
@@ -199,6 +199,14 @@ export const SiteForm = ({ initial, onClose, onSaved }) => {
         <Field label="Ciudad" htmlFor="sc"><input id="sc" value={f.city || ''} onChange={set('city')} /></Field>
         <Field label="Teléfono" htmlFor="sp"><input id="sp" value={f.phone || ''} onChange={set('phone')} inputMode="numeric" /></Field>
         <div className="span-2"><Field label="Dirección" htmlFor="sa"><input id="sa" value={f.address || ''} onChange={set('address')} /></Field></div>
+        <div className="span-2">
+          <Field label="Capital de la sede" hint="Con capital aparte, las asignaciones, entregas y traslados de sus ruteros usan la caja de esta sede">
+            <div className="seg">
+              <button type="button" className={`btn btn-sm${!f.ownCapital ? ' on' : ''}`} onClick={() => setF((x) => ({ ...x, ownCapital: false }))}>Mismo capital del negocio</button>
+              <button type="button" className={`btn btn-sm${f.ownCapital ? ' on' : ''}`} onClick={() => setF((x) => ({ ...x, ownCapital: true }))}>Capital aparte</button>
+            </div>
+          </Field>
+        </div>
         {!editing && <p className="span-2 hint" style={{ margin: 0 }}>Se crea con su propia bodega; luego puedes agregarle más.</p>}
         {editing && <label className="check span-2"><input type="checkbox" checked={f.active} onChange={set('active')} /> Sede activa</label>}
         {error && <div className="alert bad span-2">{error}</div>}

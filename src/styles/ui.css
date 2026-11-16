@@ -579,3 +579,23 @@ small.visit-note { color: var(--ink-2) !important; display: flex !important; ali
 .driver-card .grow { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .btn-reset { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; width: 100%; }
 .driver-card .badge { white-space: normal; align-self: flex-start; }
+
+/* KU-017: sedes */
+.show-md { display: none; }
+@media (max-width: 1024px) { .show-md { display: block; } }
+.site-select { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 4px 0 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink-2); }
+.site-select svg { font-size: 17px; color: var(--brand); flex: none; }
+.site-select select { border: 0; height: 34px; padding: 0 6px; width: auto; max-width: 220px; background: transparent; font-weight: 600; }
+.site-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; background: var(--gray-100); border-radius: 999px; padding: 5px 11px; color: var(--ink-2); }
+.sidebar-site { margin: 0 14px 8px; }
+.sidebar-site .site-select { width: 100%; background: var(--graphite); border-color: var(--gray-800); color: var(--white); }
+.sidebar-site .site-select select { color: var(--white); max-width: none; flex: 1; min-width: 0; width: 100%; }
+.sidebar-site .site-select { overflow: hidden; }
+.sidebar-site .site-select option { color: #111; }
+.sidebar-site .site-chip { background: var(--graphite); color: var(--white); }
+.site-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.site-card .site-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 14px; margin: 10px 0; }
+.site-card .site-stats small { display: block; color: var(--muted); font-size: 11.5px; }
+.site-card .site-stats strong { font-size: 15px; }
+.chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.check-list { display: grid; gap: 6px; max-height: 50vh; overflow: auto; }
