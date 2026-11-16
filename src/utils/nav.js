@@ -1,6 +1,6 @@
 import {
   MdDashboard, MdPeople, MdRequestQuote, MdPayments, MdRoute, MdInventory2, MdPercent, MdBarChart,
-  MdManageAccounts, MdSettings, MdHistory, MdPerson, MdReceiptLong, MdWarningAmber, MdMap, MdSavings, MdAccountBalance, MdAccountBalanceWallet
+  MdManageAccounts, MdSettings, MdHistory, MdPerson, MdReceiptLong, MdWarningAmber, MdMap, MdSavings, MdAccountBalance, MdAccountBalanceWallet, MdLockOutline
 } from 'react-icons/md'
 
 export const ROLE_LABELS = { administrador: 'Administrador', prestamista: 'Prestamista', cliente: 'Cliente' }
@@ -22,10 +22,11 @@ const NAV = {
     {
       title: 'Cobro',
       items: [
-        { to: '/rutas', label: 'Rutas y rutero', icon: MdRoute, soon: 'Etapa 3' },
+        { to: '/rutas', label: 'Rutas y rutero', icon: MdRoute },
         { to: '/pagos', label: 'Pagos', icon: MdPayments },
-        { to: '/morosos', label: 'Morosos', icon: MdWarningAmber, soon: 'Etapa 3' },
-        { to: '/mapa', label: 'Mapa', icon: MdMap, soon: 'Etapa 3' }
+        { to: '/morosos', label: 'Morosos', icon: MdWarningAmber },
+        { to: '/gastos', label: 'Gastos', icon: MdReceiptLong },
+        { to: '/mapa', label: 'Mapa', icon: MdMap }
       ]
     },
     {
@@ -43,13 +44,16 @@ const NAV = {
     {
       title: 'Cobro',
       items: [
-        { to: '/mi-ruta', label: 'Mi ruta', icon: MdRoute, soon: 'Etapa 3' },
+        { to: '/mi-ruta', label: 'Mi ruta', icon: MdRoute },
         { to: '/mi-caja', label: 'Mi caja', icon: MdAccountBalanceWallet },
         { to: '/clientes', label: 'Mis clientes', icon: MdPeople },
         { to: '/creditos', label: 'Créditos', icon: MdRequestQuote },
         { to: '/tasas', label: 'Simulador', icon: MdPercent },
         { to: '/pagos', label: 'Registrar pago', icon: MdPayments },
-        { to: '/gastos', label: 'Gastos', icon: MdReceiptLong, soon: 'Etapa 3' }
+        { to: '/gastos', label: 'Gastos', icon: MdReceiptLong },
+        { to: '/morosos', label: 'Morosos', icon: MdWarningAmber },
+        { to: '/mapa', label: 'Mapa', icon: MdMap },
+        { to: '/cierre', label: 'Cierre de jornada', icon: MdLockOutline }
       ]
     }
   ],

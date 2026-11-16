@@ -22,6 +22,12 @@ const CapitalPage = lazy(() => import('./pages/capital/CapitalPage'))
 const MyCashPage = lazy(() => import('./pages/capital/MyCashPage'))
 const PaymentsPage = lazy(() => import('./pages/pagos/PaymentsPage'))
 const MyPaymentsPage = lazy(() => import('./pages/pagos/MyPaymentsPage'))
+const RoutesPage = lazy(() => import('./pages/cobro/RoutesPage'))
+const RoutePage = lazy(() => import('./pages/cobro/RoutePage'))
+const ExpensesPage = lazy(() => import('./pages/cobro/ExpensesPage'))
+const DelinquentPage = lazy(() => import('./pages/cobro/DelinquentPage'))
+const MapPage = lazy(() => import('./pages/cobro/MapPage'))
+const CloseDayPage = lazy(() => import('./pages/cobro/CloseDayPage'))
 const CustomerDetail = lazy(() => import('./pages/clientes/CustomerDetail'))
 
 const STAFF = ['administrador', 'prestamista']
@@ -67,6 +73,13 @@ const App = () => (
               <Route path="capital" element={<Protected roles={['administrador']}><CapitalPage /></Protected>} />
               <Route path="mi-caja" element={<Protected roles={['prestamista']}><MyCashPage /></Protected>} />
               <Route path="pagos" element={<Protected roles={STAFF}><PaymentsPage /></Protected>} />
+              <Route path="rutas" element={<Protected roles={['administrador']}><RoutesPage /></Protected>} />
+              <Route path="rutas/:lenderId" element={<Protected roles={['administrador']}><RoutePage /></Protected>} />
+              <Route path="mi-ruta" element={<Protected roles={['prestamista']}><RoutePage /></Protected>} />
+              <Route path="cierre" element={<Protected roles={['prestamista']}><CloseDayPage /></Protected>} />
+              <Route path="gastos" element={<Protected roles={STAFF}><ExpensesPage /></Protected>} />
+              <Route path="morosos" element={<Protected roles={STAFF}><DelinquentPage /></Protected>} />
+              <Route path="mapa" element={<Protected roles={STAFF}><MapPage /></Protected>} />
               <Route path="mis-pagos" element={<Protected roles={['cliente']}><MyPaymentsPage /></Protected>} />
               <Route path="mis-creditos" element={<Protected roles={['cliente']}><MyCreditsPage /></Protected>} />
               <Route path="*" element={<Navigate to="/" replace />} />
