@@ -33,6 +33,8 @@ const VehiclesPage = lazy(() => import('./pages/vehiculos/VehiclesPage'))
 const VehicleDetail = lazy(() => import('./pages/vehiculos/VehicleDetail'))
 const DriversPage = lazy(() => import('./pages/vehiculos/DriversPage'))
 const SitesPage = lazy(() => import('./pages/sedes/SitesPage'))
+const NotificationsPage = lazy(() => import('./pages/notificaciones/NotificationsPage'))
+const MyNotificationsPage = lazy(() => import('./pages/notificaciones/MyNotificationsPage'))
 const ReportsPage = lazy(() => import('./pages/reportes/ReportsPage'))
 const CustomerDetail = lazy(() => import('./pages/clientes/CustomerDetail'))
 
@@ -69,6 +71,8 @@ const App = () => (
               <Route path="sedes" element={<Protected roles={['administrador']}><SitesPage /></Protected>} />
               <Route path="usuarios" element={<Protected roles={['administrador']}><UsersPage /></Protected>} />
               <Route path="configuracion" element={<Protected roles={['administrador']}><SettingsPage /></Protected>} />
+              <Route path="notificaciones" element={<Protected roles={['administrador']}><NotificationsPage /></Protected>} />
+              <Route path="mis-notificaciones" element={<Protected roles={['prestamista']}><MyNotificationsPage /></Protected>} />
               <Route path="auditoria" element={<Protected roles={['administrador']}><AuditPage /></Protected>} />
               <Route path="clientes" element={<Protected roles={STAFF}><CustomersPage /></Protected>} />
               <Route path="clientes/:id" element={<Protected roles={STAFF}><CustomerDetail /></Protected>} />
