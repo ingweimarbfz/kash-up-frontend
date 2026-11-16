@@ -1,0 +1,217 @@
+import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { MdAdd, MdDelete, MdArrowBack, MdCheck, MdPayments, MdInventory2 } from 'react-icons/md'
+import api, { errorMessage } from '../../api/client'
+import { useAuth } from '../../context/AuthContext'
+import { Card, Field, PageHead, Spinner } from '../../components/ui'
+import { MoneyInput, Tabs } from '../../components/forms'
+import ScheduleTable from '../../components/ScheduleTable'
+import { FREQUENCIES, FREQ_LABEL, METHODS, METHOD_LABEL, rateText } from '../../utils/credit'
+import { formatDate, formatMoney } from '../../utils/format'
+
+const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date())
+const EMPTY_REF = { name: '', phone: '', relationship: '', address: '' }
+
+const NewCreditPage = () => {
+  const { user } = useAuth()
+  const admin = user.role === 'administrador'
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const [customers, setCustomers] = useState([])
+  const [rates, setRates] = useState([])
+  const [products, setProducts] = useState([])
+  const [discounts, setDiscounts] = useState([])
+  const [lenders, setLenders] = useState([])
+  const [form, setForm] = useState({
+    customerId: params.get('cliente') || '', kind: 'efectivo', principal: '', items: [], discountId: '', downPayment: '',
+    interestRateId: '', method: 'fija', rate: '', rateBasis: 'mensual', frequency: 'diaria', customDays: 10, count: 30, skipSundays: true,
+    disbursementDate: today(), firstDueDate: '', lenderId: '', notes: '', references: [{ ...EMPTY_REF }]
+  })
+  const [preview, setPreview] = useState(null)
+  const [previewError, setPreviewError] = useState('')
+  const [calculating, setCalculating] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    api.get('/clientes').then(({ data }) => setCustomers(data.filter((c) => c.status === 'activo'))).catch(() => {})
+    api.get('/tasas', { params: { activas: 1 } }).then(({ data }) => setRates(data)).catch(() => {})
+    api.get('/inventario/productos', { params: { activos: 1 } }).then(({ data }) => setProducts(data)).catch(() => {})
+    api.get('/descuentos', { params: { activos: 1 } }).then(({ data }) => setDiscounts(data)).catch(() => {})
+    if (admin) api.get('/prestamistas').then(({ data }) => setLenders(data)).catch(() => {})
+  }, [admin])
+
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e?.target ? (e.target.type === 'checkbox' ? e.target.checked : e.target.value) : e }))
+  const customer = customers.find((c) => String(c.id) === String(form.customerId))
+  const pickRate = (e) => {
+    const r = rates.find((x) => String(x.id) === e.target.value)
+    setForm((f) => (r ? { ...f, interestRateId: e.target.value, method: r.method, rate: r.rate, rateBasis: r.rateBasis, frequency: r.defaultFrequency || f.frequency } : { ...f, interestRateId: '' }))
+  }
+  const setItem = (i, k, v) => setForm((f) => ({ ...f, items: f.items.map((it, j) => (j === i ? { ...it, [k]: v } : it)) }))
+  const setRef = (i, k, v) => setForm((f) => ({ ...f, references: f.references.map((r, j) => (j === i ? { ...r, [k]: v } : r)) }))
+
+  // Cuerpo que entiende el backend.
+  const body = useMemo(() => ({
+    ...form,
+    rate: Number(String(form.rate).replace(',', '.')),
+    count: Number(form.count),
+    firstDueDate: form.firstDueDate || undefined,
+    items: form.items.map((it) => ({ productId: Number(it.productId), quantity: Number(it.quantity), unitPrice: it.unitPrice }))
+  }), [form])
+
+  // Vista previa automática del plan cuando cambian las condiciones.
+  const ready = form.customerId && form.count && form.rate !== '' && (form.kind === 'efectivo' ? Number(form.principal) > 0 : form.items.some((it) => it.productId && Number(it.quantity) > 0))
+  useEffect(() => {
+    if (!ready) { setPreview(null); setPreviewError(''); return undefined }
+    const t = setTimeout(() => {
+      setCalculating(true)
+      api.post('/creditos/simular', body).then(({ data }) => { setPreview(data); setPreviewError('') }).catch((e) => { setPreview(null); setPreviewError(errorMessage(e)) }).finally(() => setCalculating(false))
+    }, 400)
+    return () => clearTimeout(t)
+  }, [body, ready])
+
+  const submit = async (e) => {
+    e.preventDefault(); setError('')
+    if (!preview) { setError(previewError || 'Completa los datos del crédito.'); return }
+    setSaving(true)
+    try { const { data } = await api.post('/creditos', body); navigate(`/creditos/${data.id}`, { replace: true, state: { created: true } }) } catch (err) { setError(errorMessage(err)) } finally { setSaving(false) }
+  }
+
+  const productTotal = form.items.reduce((s, it) => {
+    const p = products.find((x) => String(x.id) === String(it.productId))
+    return s + (p ? (it.unitPrice !== undefined && it.unitPrice !== '' ? Number(it.unitPrice) : p.price) * (Number(it.quantity) || 0) : 0)
+  }, 0)
+
+  return (
+    <form className="stack" onSubmit={submit} noValidate>
+      <PageHead title="Nuevo crédito" subtitle="Elige el cliente, las condiciones y revisa el plan de cuotas antes de guardar.">
+        <button type="button" className="btn btn-ghost" onClick={() => navigate(-1)}><MdArrowBack /> Volver</button>
+      </PageHead>
+      <div className="grid grid-2-1">
+        <div className="stack">
+          <Card title="1. Cliente y tipo de crédito">
+            <div className="form-grid">
+              <div className="span-2"><Field label="Cliente" htmlFor="nc" required>
+                <select id="nc" value={form.customerId} onChange={set('customerId')}>
+                  <option value="">Selecciona un cliente…</option>
+                  {customers.map((c) => <option key={c.id} value={c.id}>{c.fullName} · {c.identification}{c.activeCredits ? ` · ${c.activeCredits} crédito(s) activo(s)` : ''}</option>)}
+                </select>
+              </Field></div>
+              {customer && (
+                <div className="span-2 person" style={{ background: 'var(--gray-100)', padding: 10, borderRadius: 10 }}>
+                  <img className="thumb" src={customer.photoThumb} alt="" />
+                  <div style={{ flex: 1 }}><strong>{customer.fullName}</strong><small>{customer.phone} · {customer.address}</small></div>
+                  <div className="right"><small>Saldo actual</small><div className="money"><strong>{formatMoney(customer.balance)}</strong></div>{customer.overdue > 0 && <small className="text-bad">En mora</small>}</div>
+                </div>
+              )}
+              <div className="span-2"><Tabs value={form.kind} onChange={(v) => setForm((f) => ({ ...f, kind: v, items: v === 'producto' && !f.items.length ? [{ productId: '', quantity: 1 }] : f.items }))} tabs={[['efectivo', 'Crédito en efectivo'], ['producto', 'Crédito de producto']]} /></div>
+              {form.kind === 'efectivo' && <Field label="Valor del préstamo" htmlFor="np" required><MoneyInput id="np" value={form.principal} onChange={set('principal')} /></Field>}
+              {admin && (
+                <Field label="Prestamista que cobra" htmlFor="nl" hint="Por defecto, el asignado al cliente">
+                  <select id="nl" value={form.lenderId} onChange={set('lenderId')}><option value="">{customer?.lender ? `Asignado: ${customer.lender.fullName}` : 'Sin asignar'}</option>{lenders.map((l) => <option key={l.id} value={l.id}>{l.fullName}</option>)}</select>
+                </Field>
+              )}
+            </div>
+          </Card>
+
+          {form.kind === 'producto' && (
+            <Card title="2. Productos del inventario" icon={<MdInventory2 />}>
+              <div className="stack" style={{ gap: 10 }}>
+                {form.items.map((it, i) => {
+                  const p = products.find((x) => String(x.id) === String(it.productId))
+                  return (
+                    <div key={i} className="item-row">
+                      <select value={it.productId} onChange={(e) => setItem(i, 'productId', e.target.value)} aria-label="Producto">
+                        <option value="">Producto…</option>
+                        {products.map((x) => <option key={x.id} value={x.id} disabled={!x.stock}>{x.name} · {formatMoney(x.price)} · {x.stock} disp.</option>)}
+                      </select>
+                      <input type="number" min="1" max={p?.stock || undefined} value={it.quantity} onChange={(e) => setItem(i, 'quantity', e.target.value)} aria-label="Cantidad" />
+                      {admin ? <MoneyInput value={it.unitPrice ?? p?.price ?? ''} onChange={(v) => setItem(i, 'unitPrice', v)} aria-label="Precio unitario" /> : <span className="money">{p ? formatMoney(p.price) : '—'}</span>}
+                      <button type="button" className="btn btn-ghost btn-icon" onClick={() => setForm((f) => ({ ...f, items: f.items.filter((_, j) => j !== i) }))} aria-label="Quitar"><MdDelete /></button>
+                    </div>
+                  )
+                })}
+                <div><button type="button" className="btn btn-sm" onClick={() => setForm((f) => ({ ...f, items: [...f.items, { productId: '', quantity: 1 }] }))}><MdAdd /> Agregar producto</button></div>
+                <div className="form-grid">
+                  <Field label="Descuento" htmlFor="nd"><select id="nd" value={form.discountId} onChange={set('discountId')}><option value="">Sin descuento</option>{discounts.map((d) => <option key={d.id} value={d.id}>{d.name} ({d.type === 'porcentaje' ? `${d.value} %` : formatMoney(d.value)})</option>)}</select></Field>
+                  <Field label="Cuota inicial" htmlFor="ndp"><MoneyInput id="ndp" value={form.downPayment} onChange={set('downPayment')} /></Field>
+                </div>
+                <dl className="stat-list">
+                  <div><dt>Total productos</dt><dd className="money">{formatMoney(preview?.productsTotal ?? productTotal)}</dd></div>
+                  {preview?.discountAmount > 0 && <div><dt>Descuento {preview.discountName}</dt><dd className="money text-ok">− {formatMoney(preview.discountAmount)}</dd></div>}
+                  {Number(form.downPayment) > 0 && <div><dt>Cuota inicial</dt><dd className="money">− {formatMoney(form.downPayment)}</dd></div>}
+                  {preview && <div className="total"><dt>A financiar</dt><dd className="money">{formatMoney(preview.principal)}</dd></div>}
+                </dl>
+              </div>
+            </Card>
+          )}
+
+          <Card title={`${form.kind === 'producto' ? 3 : 2}. Interés y cuotas`}>
+            <div className="form-grid">
+              <div className="span-2"><Field label="Tasa de interés" htmlFor="nr">
+                <select id="nr" value={form.interestRateId} onChange={pickRate}>
+                  <option value="">Personalizada (escribe la tasa)</option>
+                  {rates.map((r) => <option key={r.id} value={r.id}>{r.name} · {METHOD_LABEL[r.method]} · {rateText(r)}</option>)}
+                </select>
+              </Field></div>
+              {!form.interestRateId && (
+                <>
+                  <Field label="Modalidad" htmlFor="nm"><select id="nm" value={form.method} onChange={(e) => setForm((f) => ({ ...f, method: e.target.value, rateBasis: e.target.value === 'sobre_saldo' ? 'mensual' : f.rateBasis }))}>{METHODS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></Field>
+                  <Field label="Tasa (%)" htmlFor="nra"><div className="input-pair"><input id="nra" inputMode="decimal" value={form.rate} onChange={set('rate')} placeholder="20" />
+                    <select value={form.rateBasis} onChange={set('rateBasis')} disabled={form.method === 'sobre_saldo'} aria-label="Base"><option value="mensual">mensual</option><option value="total">total</option></select></div></Field>
+                  <small className="hint span-2">{METHODS.find(([k]) => k === form.method)[2]}</small>
+                </>
+              )}
+              <Field label="Modalidad de cobro" htmlFor="nf"><select id="nf" value={form.frequency} onChange={set('frequency')}>{FREQUENCIES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></Field>
+              {form.frequency === 'personalizada' && <Field label="Cada cuántos días" htmlFor="ncd"><input id="ncd" type="number" min="1" max="365" value={form.customDays} onChange={set('customDays')} /></Field>}
+              <Field label="Número de cuotas" htmlFor="ncn" required><input id="ncn" type="number" min="1" max="720" value={form.count} onChange={set('count')} /></Field>
+              <Field label="Fecha de desembolso" htmlFor="ndd"><input id="ndd" type="date" value={form.disbursementDate} onChange={set('disbursementDate')} /></Field>
+              <Field label="Primera cuota" htmlFor="nfd" hint="Vacío = un periodo después del desembolso"><input id="nfd" type="date" value={form.firstDueDate} onChange={set('firstDueDate')} /></Field>
+              {form.frequency === 'diaria' && <label className="check span-2"><input type="checkbox" checked={form.skipSundays} onChange={set('skipSundays')} /> No cobrar los domingos</label>}
+            </div>
+          </Card>
+
+          <Card title={`${form.kind === 'producto' ? 4 : 3}. Referencias personales`} subtitle="Al menos una, con nombre y celular.">
+            <div className="stack" style={{ gap: 14 }}>
+              {form.references.map((r, i) => (
+                <div key={i} className="form-grid ref-block">
+                  <Field label="Nombre completo" htmlFor={`rn${i}`} required><input id={`rn${i}`} value={r.name} onChange={(e) => setRef(i, 'name', e.target.value)} /></Field>
+                  <Field label="Celular" htmlFor={`rp${i}`} required><input id={`rp${i}`} inputMode="numeric" value={r.phone} onChange={(e) => setRef(i, 'phone', e.target.value)} /></Field>
+                  <Field label="Parentesco o relación" htmlFor={`rr${i}`}><input id={`rr${i}`} value={r.relationship} onChange={(e) => setRef(i, 'relationship', e.target.value)} placeholder="Hermana, vecino, jefe…" /></Field>
+                  <Field label="Dirección" htmlFor={`ra${i}`}><input id={`ra${i}`} value={r.address} onChange={(e) => setRef(i, 'address', e.target.value)} /></Field>
+                  {form.references.length > 1 && <div className="span-2 right"><button type="button" className="btn btn-sm btn-ghost" onClick={() => setForm((f) => ({ ...f, references: f.references.filter((_, j) => j !== i) }))}><MdDelete /> Quitar referencia</button></div>}
+                </div>
+              ))}
+              {form.references.length < 3 && <div><button type="button" className="btn btn-sm" onClick={() => setForm((f) => ({ ...f, references: [...f.references, { ...EMPTY_REF }] }))}><MdAdd /> Otra referencia</button></div>}
+              <Field label="Observaciones del crédito" htmlFor="nno"><textarea id="nno" rows={2} value={form.notes} onChange={set('notes')} /></Field>
+            </div>
+          </Card>
+        </div>
+
+        <div className="stack sticky-col">
+          <Card title="Resumen" icon={<MdPayments />}>
+            {calculating && !preview && <div className="splash" style={{ minHeight: 120 }}><Spinner /></div>}
+            {!preview && !calculating && <p className="disabled-text" style={{ margin: 0 }}>{previewError || 'Completa cliente, valor y condiciones para ver el plan.'}</p>}
+            {preview && (
+              <dl className="stat-list">
+                <div><dt>Capital</dt><dd className="money">{formatMoney(preview.principal)}</dd></div>
+                <div><dt>Interés</dt><dd>{METHOD_LABEL[preview.method]} · {String(preview.rate).replace('.', ',')} % {preview.rateBasis === 'total' ? 'total' : 'mensual'}</dd></div>
+                <div><dt>Interés total</dt><dd className="money">{formatMoney(preview.totalInterest)}</dd></div>
+                <div><dt>Cuotas</dt><dd>{preview.count} · {preview.frequency === 'personalizada' ? `cada ${preview.intervalDays} días` : FREQ_LABEL[preview.frequency]}</dd></div>
+                <div><dt>Primera / última</dt><dd>{formatDate(preview.firstDueDate)} / {formatDate(preview.lastDueDate)}</dd></div>
+                <div className="total"><dt>Valor de la cuota</dt><dd className="money">{formatMoney(preview.installmentAmount)}</dd></div>
+                <div className="total"><dt>Total a pagar</dt><dd className="money">{formatMoney(preview.totalAmount)}</dd></div>
+                {form.kind === 'efectivo' && <div className="total"><dt>Se entrega en efectivo</dt><dd className="money text-ok">{formatMoney(preview.disbursedAmount)}</dd></div>}
+              </dl>
+            )}
+            {error && <div className="alert bad" style={{ marginTop: 12 }}>{error}</div>}
+            <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: 14 }} disabled={saving || !preview}>{saving ? <Spinner /> : <MdCheck />} Crear crédito</button>
+          </Card>
+          {preview && <Card title="Plan de cuotas" flush><ScheduleTable rows={preview.installments} limit={8} compact /></Card>}
+        </div>
+      </div>
+    </form>
+  )
+}
+
+export default NewCreditPage
