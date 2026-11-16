@@ -13,6 +13,7 @@ const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const AuditPage = lazy(() => import('./pages/AuditPage'))
 const CustomersPage = lazy(() => import('./pages/clientes/CustomersPage'))
 const RatesPage = lazy(() => import('./pages/creditos/RatesPage'))
+const InventoryPage = lazy(() => import('./pages/inventario/InventoryPage'))
 const CustomerDetail = lazy(() => import('./pages/clientes/CustomerDetail'))
 
 const STAFF = ['administrador', 'prestamista']
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="clientes" element={<Protected roles={STAFF}><CustomersPage /></Protected>} />
               <Route path="clientes/:id" element={<Protected roles={STAFF}><CustomerDetail /></Protected>} />
               <Route path="tasas" element={<Protected roles={STAFF}><RatesPage /></Protected>} />
+              <Route path="inventario" element={<Protected roles={['administrador']}><InventoryPage /></Protected>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>

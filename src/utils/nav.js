@@ -15,7 +15,7 @@ const NAV = {
         { to: '/clientes', label: 'Clientes', icon: MdPeople },
         { to: '/creditos', label: 'Créditos', icon: MdRequestQuote, soon: 'Etapa 2' },
         { to: '/tasas', label: 'Tasas y simulador', icon: MdPercent },
-        { to: '/inventario', label: 'Inventario', icon: MdInventory2, soon: 'Etapa 2' }
+        { to: '/inventario', label: 'Inventario', icon: MdInventory2 }
       ]
     },
     {
