@@ -568,3 +568,14 @@ small.visit-note { color: var(--ink-2) !important; display: flex !important; ali
 .doc-row:last-child { border-bottom: 0; }
 .doc-row small { display: block; color: var(--muted); font-size: 12px; }
 .doc-row .right { text-align: right; }
+
+/* KU-016: conductores */
+.input-action { display: flex; gap: 8px; }
+.input-action > select, .input-action > input { flex: 1; min-width: 0; }
+.form-section { margin: 4px 0 0; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-2); }
+.driver-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.driver-card { display: flex; gap: 12px; align-items: flex-start; text-align: left; }
+.driver-card .avatar-lg { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; background: var(--surface-2, #eef1f5); display: grid; place-items: center; font-size: 26px; color: var(--ink-2); flex: none; }
+.driver-card .grow { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.btn-reset { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; width: 100%; }
+.driver-card .badge { white-space: normal; align-self: flex-start; }

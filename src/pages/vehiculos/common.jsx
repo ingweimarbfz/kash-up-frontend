@@ -1,33 +1,38 @@
 import React, { useEffect, useState } from 'react'
-import { MdCheck, MdLocalGasStation, MdBuild, MdSpeed, MdTwoWheeler, MdDirectionsCar } from 'react-icons/md'
+import { MdCheck, MdLocalGasStation, MdBuild, MdSpeed, MdTwoWheeler, MdDirectionsCar, MdPersonAdd } from 'react-icons/md'
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
-import { Field, Modal, Spinner } from '../../components/ui'
+import { Badge, Field, Modal, Spinner } from '../../components/ui'
 import { MoneyInput, PhotoInput, Tabs } from '../../components/forms'
-import { formatMoney } from '../../utils/format'
+import { formatDate, formatMoney } from '../../utils/format'
 import { todayBogota } from '../pagos/common'
 
 export const KINDS = [['moto', 'Moto'], ['carro', 'Carro'], ['camioneta', 'Camioneta'], ['otro', 'Otro']]
 export const STATUS = { activo: ['Activo', 'ok'], taller: ['En taller', 'warn'], inactivo: ['Inactivo', 'muted'] }
 export const MAINT_KINDS = [['cambio_aceite', 'Cambio de aceite'], ['preventivo', 'Preventivo'], ['correctivo', 'Correctivo'], ['llantas', 'Llantas'], ['frenos', 'Frenos'], ['otro', 'Otro']]
+export const LICENSE_CATS = ['A1', 'A2', 'B1', 'B2', 'B3', 'C1', 'C2', 'C3']
 export const VehicleIcon = ({ kind, ...p }) => (kind === 'moto' ? <MdTwoWheeler {...p} /> : <MdDirectionsCar {...p} />)
 export const km = (v) => `${Number(v || 0).toLocaleString('es-CO')} km`
 
 const EMPTY = {
   code: '', plate: '', kind: 'moto', brand: '', line: '', modelYear: '', color: '', engineCc: '', vin: '', ownerName: '', photoUrl: null, status: 'activo', odometer: '',
-  collectorId: '', driverName: '', driverPhone: '', driverLicense: '', driverLicenseExpires: '', soatExpires: '', soatNumber: '', tecnoExpires: '',
+  collectorId: '', driverId: '', soatExpires: '', soatNumber: '', tecnoExpires: '',
   insuranceCompany: '', insurancePolicy: '', insuranceExpires: '', oilChangeKm: '', notes: ''
 }
 
 // Crear o editar la hoja de vida del vehículo (administrador).
 export const VehicleForm = ({ vehicle, onClose, onSaved }) => {
-  const [form, setForm] = useState(() => (vehicle ? Object.fromEntries(Object.keys(EMPTY).map((k) => [k, k === 'collectorId' ? (vehicle.collector?.id ?? '') : (vehicle[k] ?? EMPTY[k])])) : EMPTY))
+  const [form, setForm] = useState(() => (vehicle ? Object.fromEntries(Object.keys(EMPTY).map((k) => [k, k === 'collectorId' ? (vehicle.collector?.id ?? '') : k === 'driverId' ? (vehicle.driver?.id ?? '') : (vehicle[k] ?? EMPTY[k])])) : EMPTY))
   const [lenders, setLenders] = useState([])
+  const [drivers, setDrivers] = useState([])
+  const [newDriver, setNewDriver] = useState(false)
   const [tab, setTab] = useState('datos')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   useEffect(() => { api.get('/prestamistas').then(({ data }) => setLenders(data)).catch(() => {}) }, [])
+  useEffect(() => { api.get('/conductores', { params: { activos: 1 } }).then(({ data }) => setDrivers(data)).catch(() => {}) }, [])
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e?.target ? e.target.value : e }))
+  const driver = drivers.find((d) => String(d.id) === String(form.driverId))
   const submit = async (e) => {
     e.preventDefault(); setError('')
     if (!form.code.trim() || !form.plate.trim()) { setTab('datos'); return setError('El número interno y la placa son obligatorios.') }
@@ -65,10 +70,15 @@ export const VehicleForm = ({ vehicle, onClose, onSaved }) => {
         {tab === 'ruta' && (
           <div className="form-grid">
             <div className="span-2"><Field label="Prestamista que cobra con este vehículo" htmlFor="v-col" hint="Verá el vehículo en su menú y podrá registrar tanqueos y kilometraje"><select id="v-col" value={form.collectorId} onChange={set('collectorId')}><option value="">Sin asignar</option>{lenders.map((l) => <option key={l.id} value={l.id}>{l.fullName}</option>)}</select></Field></div>
-            {input('driverName', 'Conductor', { placeholder: 'Vacío si el mismo prestamista maneja' })}
-            {input('driverPhone', 'Celular del conductor', { inputMode: 'tel' })}
-            {input('driverLicense', 'Licencia de conducción')}
-            {input('driverLicenseExpires', 'Vence la licencia', { type: 'date' })}
+            <div className="span-2"><Field label="Conductor" htmlFor="v-drv" hint="Vacío si el mismo prestamista maneja">
+              <div className="input-action">
+                <select id="v-drv" value={form.driverId} onChange={set('driverId')}><option value="">Sin conductor (maneja el prestamista)</option>{drivers.map((d) => <option key={d.id} value={d.id}>{d.fullName} · {d.identification}{d.vehicles.some((x) => x.id !== vehicle?.id) ? ` (con ${d.vehicles.find((x) => x.id !== vehicle?.id).plate})` : ''}</option>)}</select>
+                <button type="button" className="btn" onClick={() => setNewDriver(true)}><MdPersonAdd /> Registrar</button>
+              </div>
+            </Field></div>
+            <Field label="Celular del conductor"><input value={driver?.phone || ''} readOnly disabled placeholder="Se llena al elegir el conductor" /></Field>
+            <Field label="Licencia"><input value={driver ? `${driver.licenseNumber} · ${driver.licenseCategory}` : ''} readOnly disabled /></Field>
+            {driver && <div className="span-2"><LicenseBadge driver={driver} /></div>}
           </div>
         )}
         {tab === 'documentos' && (
@@ -81,6 +91,56 @@ export const VehicleForm = ({ vehicle, onClose, onSaved }) => {
             {input('insuranceExpires', 'Vence la póliza', { type: 'date' })}
           </div>
         )}
+        {error && <div className="alert bad">{error}</div>}
+      </form>
+      {newDriver && <DriverForm onClose={() => setNewDriver(false)} onSaved={(d) => { setNewDriver(false); setDrivers((l) => [...l, d].sort((a, b) => a.fullName.localeCompare(b.fullName))); setForm((f) => ({ ...f, driverId: String(d.id) })) }} />}
+    </Modal>
+  )
+}
+
+// Vigencia de la licencia del conductor.
+export const LicenseBadge = ({ driver }) => {
+  const d = driver.licenseDays ?? Math.round((new Date(`${driver.licenseExpires}T12:00:00Z`) - new Date(`${todayBogota()}T12:00:00Z`)) / 86400000)
+  const tone = d < 0 ? 'bad' : d <= 30 ? 'warn' : 'ok'
+  return <Badge tone={tone}>Licencia {driver.licenseCategory} {d < 0 ? `vencida hace ${-d} día(s)` : `vence el ${formatDate(driver.licenseExpires)}`}</Badge>
+}
+
+const DRIVER_EMPTY = { name: '', lastName: '', identification: '', phone: '', address: '', licenseNumber: '', licenseCategory: 'A2', licenseExpires: '', licensePhotoUrl: null, photoUrl: null, notes: '', active: true }
+// Registro del conductor con su licencia de conducción.
+export const DriverForm = ({ driver, onClose, onSaved }) => {
+  const [form, setForm] = useState(() => (driver ? Object.fromEntries(Object.keys(DRIVER_EMPTY).map((k) => [k, driver[k] ?? DRIVER_EMPTY[k]])) : DRIVER_EMPTY))
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e?.target ? (e.target.type === 'checkbox' ? e.target.checked : e.target.value) : e }))
+  const submit = async (e) => {
+    e.preventDefault(); e.stopPropagation(); setError('')
+    if (!form.name.trim() || !form.identification.trim() || !form.phone.trim()) return setError('Nombre, documento y celular son obligatorios.')
+    if (!form.licenseNumber.trim() || !form.licenseExpires) return setError('Registra el número de la licencia y su fecha de vencimiento.')
+    setSaving(true)
+    try { const { data } = driver ? await api.put(`/conductores/${driver.id}`, form) : await api.post('/conductores', form); onSaved(data) } catch (err) { setError(errorMessage(err)); setSaving(false) }
+  }
+  const input = (k, label, props = {}) => <Field label={label} htmlFor={`d-${k}`} required={props.req}><input id={`d-${k}`} value={form[k] ?? ''} onChange={set(k)} {...props} req={undefined} /></Field>
+  return (
+    <Modal title={driver ? `Editar ${driver.fullName}` : 'Registrar conductor'} size="lg" onClose={onClose}
+      footer={<><button type="button" className="btn" onClick={onClose}>Cancelar</button><button type="submit" form="drv-form" className="btn btn-primary" disabled={saving}>{saving ? <Spinner /> : <MdCheck />} Guardar</button></>}>
+      <form id="drv-form" className="stack" onSubmit={submit} noValidate>
+        <div className="form-grid">
+          <div className="span-2"><PhotoInput value={form.photoUrl} onChange={set('photoUrl')} label="Foto del conductor" capture="user" /></div>
+          {input('name', 'Nombres', { req: true })}
+          {input('lastName', 'Apellidos')}
+          {input('identification', 'Cédula', { req: true, inputMode: 'numeric' })}
+          {input('phone', 'Celular', { req: true, inputMode: 'tel', placeholder: '3001234567' })}
+          <div className="span-2">{input('address', 'Dirección')}</div>
+        </div>
+        <h4 className="form-section">Licencia de conducción</h4>
+        <div className="form-grid">
+          {input('licenseNumber', 'Número de licencia', { req: true })}
+          <Field label="Categoría" htmlFor="d-cat" required><select id="d-cat" value={form.licenseCategory} onChange={set('licenseCategory')}>{LICENSE_CATS.map((c) => <option key={c} value={c}>{c}{c.startsWith('A') ? ' · motos' : c.startsWith('B') ? ' · carros particulares' : ' · servicio público'}</option>)}</select></Field>
+          {input('licenseExpires', 'Vence', { req: true, type: 'date' })}
+          {driver && <label className="check"><input type="checkbox" checked={form.active} onChange={set('active')} /> Activo</label>}
+          <div className="span-2"><Field label="Foto de la licencia"><PhotoInput doc value={form.licensePhotoUrl} onChange={set('licensePhotoUrl')} label="Tomar foto de la licencia" /></Field></div>
+          <div className="span-2">{input('notes', 'Observaciones')}</div>
+        </div>
         {error && <div className="alert bad">{error}</div>}
       </form>
     </Modal>
