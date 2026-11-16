@@ -163,7 +163,7 @@ const ReportsPage = () => {
   useEffect(() => {
     setData(null); setError('')
     api.get(`/reportes/${tab}`, { params: { desde: range[0], hasta: range[1], prestamista: lender || undefined } })
-      .then(({ data: d }) => setData(d)).catch((e) => setError(errorMessage(e)))
+      .then(({ data: d }) => setData({ ...d, tab })).catch((e) => setError(errorMessage(e)))
   }, [tab, range, lender])
   const choose = (k) => { setPreset(k); setRange(PRESETS.find((p) => p[0] === k)[2](today)) }
   const setDate = (i) => (e) => { setPreset(''); setRange((r) => (i ? [r[0], e.target.value] : [e.target.value, r[1]])) }
@@ -190,7 +190,7 @@ const ReportsPage = () => {
         </div>
       </Card>
       {error && <div className="alert bad">{error}</div>}
-      {!data ? (!error && <div className="splash" style={{ minHeight: 260 }}><Spinner /></div>) : <View d={data} csv={csv} />}
+      {!data || data.tab !== tab ? (!error && <div className="splash" style={{ minHeight: 260 }}><Spinner /></div>) : <View d={data} csv={csv} />}
     </div>
   )
 }

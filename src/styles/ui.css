@@ -545,3 +545,4 @@ small.visit-note { color: var(--ink-2) !important; display: flex !important; ali
   .content { padding: 0 !important; }
   .card { break-inside: avoid; box-shadow: none !important; }
 }
+.pending-alert a { font-weight: 700; color: inherit; text-decoration: underline; }

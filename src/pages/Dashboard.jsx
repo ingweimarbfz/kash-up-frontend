@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MdAccountBalanceWallet, MdPayments, MdWarningAmber, MdRequestQuote, MdPeople, MdBadge, MdRoute, MdEventAvailable, MdSavings, MdCheckCircle, MdAccountBalance, MdLockOutline, MdChevronRight, MdEventNote, MdShield } from 'react-icons/md'
+import { MdAccountBalanceWallet, MdPayments, MdWarningAmber, MdRequestQuote, MdPeople, MdBadge, MdRoute, MdEventAvailable, MdSavings, MdCheckCircle, MdAccountBalance, MdLockOutline, MdChevronRight, MdEventNote, MdShield, MdNotificationsActive } from 'react-icons/md'
 import api, { errorMessage } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { Avatar, Badge, Card, Kpi, PageHead, Spinner, Empty } from '../components/ui'
@@ -68,8 +68,15 @@ const TopLate = ({ rows }) => {
 const Extra = ({ x, admin }) => {
   if (!x) return <div className="splash" style={{ minHeight: 160 }}><Spinner /></div>
   const total = x.daily.reduce((s, r) => s + r.recaudado, 0)
+  const pend = x.pending || {}
   return (
     <>
+      {admin && (pend.creditRequests > 0 || pend.cashTransfers > 0) && (
+        <div className="alert warn pending-alert">
+          <MdNotificationsActive />
+          <span>Tienes pendientes por revisar:{pend.creditRequests > 0 && <> <Link to="/solicitudes">{pend.creditRequests} solicitud(es) de crédito</Link></>}{pend.creditRequests > 0 && pend.cashTransfers > 0 && ' y'}{pend.cashTransfers > 0 && <> <Link to="/capital">{pend.cashTransfers} traslado(s) de dinero</Link></>}.</span>
+        </div>
+      )}
       <div className="grid grid-2-1">
         <Card title={admin ? 'Recaudo diario' : 'Mi recaudo diario'} subtitle={`Últimos 14 días · ${formatMoney(total)} en total`}>
           <TrendChart data={x.daily} dataKey="recaudado" name="Recaudado" tickFormatter={dayTick} />

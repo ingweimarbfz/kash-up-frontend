@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { MdAdd, MdDelete, MdArrowBack, MdCheck, MdPayments, MdInventory2, MdSavings, MdAutorenew, MdReceiptLong } from 'react-icons/md'
+import { MdAdd, MdDelete, MdArrowBack, MdCheck, MdPayments, MdInventory2, MdSavings, MdAutorenew, MdReceiptLong, MdSend } from 'react-icons/md'
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
 import { Card, Field, PageHead, Spinner } from '../../components/ui'
@@ -38,6 +38,7 @@ const NewCreditPage = () => {
   const [calculating, setCalculating] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [reason, setReason] = useState('')
 
   useEffect(() => {
     // Cliente que llega desde su ficha (?cliente=ID) o el crédito a renovar (?renovar=ID).
@@ -104,7 +105,11 @@ const NewCreditPage = () => {
     e.preventDefault(); setError('')
     if (!preview) { setError(previewError || 'Completa los datos del crédito.'); return }
     setSaving(true)
-    try { const { data } = await api.post('/creditos', body); navigate(`/creditos/${data.id}`, { replace: true, state: { created: true } }) } catch (err) { setError(errorMessage(err)) } finally { setSaving(false) }
+    try {
+      const { data, status } = await api.post('/creditos', { ...body, requestReason: reason })
+      if (status === 202) navigate('/solicitudes', { replace: true, state: { message: data.message } })
+      else navigate(`/creditos/${data.id}`, { replace: true, state: { created: true } })
+    } catch (err) { setError(errorMessage(err)) } finally { setSaving(false) }
   }
 
   const productTotal = form.items.reduce((s, it) => {
@@ -253,8 +258,14 @@ const NewCreditPage = () => {
               </div>
             )}
             {preview?.renewal && preview.renewal.net <= 0 && <div className="alert bad" style={{ marginTop: 12 }}>El nuevo préstamo debe ser mayor que el saldo actual ({formatMoney(preview.renewal.payoff)}) para entregar dinero.</div>}
+            {preview?.needsApproval && (
+              <div className="stack" style={{ gap: 10, marginTop: 12 }}>
+                <div className="alert info"><MdSend /> <span>{customer?.fullName || 'El cliente'} ya tiene {preview.needsApproval.activeCredits.length === 1 ? 'el crédito' : 'los créditos'} #{preview.needsApproval.activeCredits.join(', #')} activo{preview.needsApproval.activeCredits.length === 1 ? '' : 's'}. Este nuevo crédito se envía como solicitud y se entrega cuando el administrador lo apruebe.</span></div>
+                <Field label="¿Por qué necesita otro crédito?" htmlFor="nrr"><input id="nrr" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ej.: buen cliente, quiere surtir el negocio" /></Field>
+              </div>
+            )}
             {error && <div className="alert bad" style={{ marginTop: 12 }}>{error}</div>}
-            <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: 14 }} disabled={saving || !preview || preview.funds?.enough === false || (preview.renewal && preview.renewal.net <= 0)}>{saving ? <Spinner /> : <MdCheck />} {renewId ? 'Renovar crédito' : 'Crear crédito'}</button>
+            <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: 14 }} disabled={saving || !preview || (preview.funds?.enough === false && !preview.needsApproval) || (preview.renewal && preview.renewal.net <= 0)}>{saving ? <Spinner /> : preview?.needsApproval ? <MdSend /> : <MdCheck />} {renewId ? 'Renovar crédito' : preview?.needsApproval ? 'Enviar solicitud al administrador' : 'Crear crédito'}</button>
           </Card>
           {preview && <Card title="Plan de cuotas" flush><ScheduleTable rows={preview.installments} limit={8} compact /></Card>}
         </div>
