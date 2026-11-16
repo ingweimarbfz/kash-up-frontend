@@ -5,7 +5,7 @@ import { Avatar, Badge, Card, Empty, Field, Kpi, Modal, PageHead, Spinner, useTo
 import { MoneyInput } from '../../components/forms'
 import { formatDateTime, formatMoney } from '../../utils/format'
 
-const MOVE_TONES = { aporte: 'ok', retiro: 'bad', asignacion: 'dark', devolucion_asignacion: 'warn', desembolso: 'dark', reverso_desembolso: 'brand', recaudo: 'ok', ajuste: 'warn' }
+const MOVE_TONES = { aporte: 'ok', retiro: 'bad', asignacion: 'dark', devolucion_asignacion: 'warn', desembolso: 'dark', reverso_desembolso: 'brand', recaudo: 'ok', ajuste: 'warn', gasto: 'bad', reverso_gasto: 'brand' }
 
 export const MovementsTable = ({ rows, showAccount = true }) => (
   !rows ? <div className="splash" style={{ minHeight: 140 }}><Spinner /></div>
