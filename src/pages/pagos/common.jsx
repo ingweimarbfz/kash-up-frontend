@@ -105,8 +105,10 @@ const printReceipt = (r) => {
   const rows = r.installments.map((i) => `<tr><td>Cuota #${i.number} · ${formatDate(i.dueDate)}</td><td style="text-align:right">${formatMoney(i.amount)}${i.waived ? `<br><small>interés condonado ${formatMoney(i.waived)}</small>` : ''}</td></tr>`).join('')
   const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
   w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Recibo ${esc(r.number)}</title>
-<style>body{font-family:system-ui,Arial,sans-serif;max-width:340px;margin:16px auto;color:#111;font-size:13px}h1{font-size:18px;margin:0}h2{font-size:14px;margin:4px 0 12px;color:#555;font-weight:500}
-table{width:100%;border-collapse:collapse}td{padding:5px 0;border-bottom:1px dashed #ccc;vertical-align:top}.big{font-size:22px;font-weight:700;margin:12px 0}.void{color:#b91c1c;font-weight:700;border:2px solid #b91c1c;padding:6px;text-align:center;margin:10px 0}small{color:#666}</style></head><body>
+<style>@page{size:auto;margin:0}*{box-sizing:border-box}html,body{margin:0}body{font-family:system-ui,Arial,sans-serif;color:#111;font-size:16px;line-height:1.35;padding:14mm 16mm;max-width:640px;margin:0 auto}
+h1{font-size:26px;margin:0}h2{font-size:18px;margin:4px 0 16px;color:#555;font-weight:500}
+table{width:100%;border-collapse:collapse;table-layout:fixed}td{padding:8px 0;border-bottom:1px dashed #bbb;vertical-align:top;overflow-wrap:anywhere;word-break:break-word}td:first-child{width:45%;padding-right:12px}
+.big{font-size:34px;font-weight:700;margin:16px 0}@media print{body{max-width:none;width:100%}}.void{color:#b91c1c;font-weight:700;border:2px solid #b91c1c;padding:6px;text-align:center;margin:10px 0}small{color:#666}</style></head><body>
 <h1>${esc(r.business)}</h1><h2>Recibo de pago ${esc(r.number)}</h2>
 ${r.status === 'anulado' ? `<div class="void">PAGO ANULADO · ${esc(r.voidReason)}</div>` : ''}
 <table><tr><td>Fecha</td><td style="text-align:right">${formatDate(r.paidOn)}</td></tr><tr><td>Cliente</td><td style="text-align:right">${esc(r.customer?.fullName)}<br><small>${esc(r.customer?.identification)}</small></td></tr>
