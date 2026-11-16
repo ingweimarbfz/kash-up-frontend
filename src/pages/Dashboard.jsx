@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { MdAccountBalanceWallet, MdPayments, MdWarningAmber, MdRequestQuote, MdPeople, MdBadge, MdRoute, MdEventAvailable, MdSavings, MdCheckCircle } from 'react-icons/md'
 import api, { errorMessage } from '../api/client'
 import { useAuth } from '../context/AuthContext'
@@ -18,7 +19,7 @@ const AdminDashboard = ({ d }) => (
       <Kpi label="Cartera activa" value={formatMoney(d.kpis.carteraActiva)} icon={MdAccountBalanceWallet} tone="dark" note="Capital pendiente de cobro" />
       <Kpi label="Recaudo de hoy" value={formatMoney(d.kpis.recaudoHoy)} icon={MdPayments} tone="brand" note="Pagos registrados hoy" />
       <Kpi label="En mora" value={formatMoney(d.kpis.enMora)} icon={MdWarningAmber} tone="bad" note="Cuotas vencidas sin pagar" />
-      <Kpi label="Créditos activos" value={d.kpis.creditosActivos} icon={MdRequestQuote} />
+      <Kpi label="Créditos activos" value={d.kpis.creditosActivos} icon={MdRequestQuote} note={d.kpis.clientesEnMora ? `${d.kpis.clientesEnMora} cliente(s) en mora` : null} />
       <Kpi label="Prestamistas" value={d.kpis.prestamistas} icon={MdBadge} />
       <Kpi label="Clientes con usuario" value={d.kpis.clientes} icon={MdPeople} />
     </div>
@@ -49,8 +50,9 @@ const ClientDashboard = ({ d }) => (
       <Kpi label="Cuotas pagadas" value={d.kpis.cuotasPagadas} icon={MdCheckCircle} />
       <Kpi label="Créditos activos" value={d.kpis.creditosActivos} icon={MdSavings} />
     </div>
-    <Card title="Mis créditos">
-      {d.creditos.length ? null : <Empty icon={<MdSavings />}>Aún no tienes créditos registrados.</Empty>}
+    {d.kpis.enMora > 0 && <div className="alert bad">Tienes {formatMoney(d.kpis.enMora)} en cuotas vencidas. Ponte al día con tu prestamista.</div>}
+    <Card title="Mis créditos" actions={<Link className="btn btn-sm" to="/mis-creditos">Ver cuotas</Link>}>
+      {d.kpis.creditosActivos ? <p style={{ margin: 0 }}>Tienes {d.kpis.creditosActivos} crédito(s) activo(s). Revisa el detalle de cada cuota en <Link className="small-link" to="/mis-creditos">Mis créditos</Link>.</p> : <Empty icon={<MdSavings />}>Aún no tienes créditos registrados.</Empty>}
     </Card>
   </>
 )
