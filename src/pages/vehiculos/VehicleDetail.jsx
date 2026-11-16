@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { MdArrowBack, MdEdit, MdLocalGasStation, MdBuild, MdSpeed, MdErrorOutline, MdWarningAmber, MdCheckCircle, MdDelete, MdImage, MdPhone } from 'react-icons/md'
+import { MdArrowBack, MdEdit, MdLocalGasStation, MdBuild, MdSpeed, MdErrorOutline, MdWarningAmber, MdCheckCircle, MdDelete, MdImage, MdPhone, MdPerson } from 'react-icons/md'
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
 import { Badge, Card, Empty, Kpi, Modal, PageHead, Spinner, useToast } from '../../components/ui'
@@ -9,7 +9,7 @@ import { SeriesBars } from '../../components/charts'
 import { CHART } from '../../utils/brand'
 import { formatDate, formatMoney } from '../../utils/format'
 import { todayBogota } from '../pagos/common'
-import { LogModal, STATUS, VehicleForm, VehicleIcon, km } from './common'
+import { LicenseBadge, LogModal, STATUS, VehicleForm, VehicleIcon, km } from './common'
 
 const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
 const monthTick = (v) => (v ? `${MONTHS[Number(v.slice(5, 7)) - 1]} ${v.slice(2, 4)}` : '')
@@ -78,7 +78,7 @@ const VehicleDetail = () => {
             <dl className="stat-list pad">
               <div><dt>Estado</dt><dd><Badge tone={STATUS[v.status][1]}>{STATUS[v.status][0]}</Badge></dd></div>
               <div><dt>Cobra</dt><dd>{v.collector?.fullName || 'Sin asignar'}</dd></div>
-              <div><dt>Conductor</dt><dd>{v.driverName || 'El mismo prestamista'}{v.driverPhone && <> · <a href={`tel:${v.driverPhone}`}><MdPhone /> {v.driverPhone}</a></>}</dd></div>
+              <div><dt>Conductor</dt><dd>{v.driver?.fullName || 'El mismo prestamista'}{v.driver?.phone && <> · <a href={`tel:${v.driver.phone}`}><MdPhone /> {v.driver.phone}</a></>}</dd></div>
               {v.engineCc && <div><dt>Cilindraje</dt><dd>{v.engineCc} cc</dd></div>}
               {v.vin && <div><dt>Chasis / VIN</dt><dd>{v.vin}</dd></div>}
               {v.ownerName && <div><dt>Propietario</dt><dd>{v.ownerName}</dd></div>}
@@ -90,8 +90,21 @@ const VehicleDetail = () => {
             <DocRow label="SOAT" date={v.soatExpires} extra={v.soatNumber} />
             <DocRow label="Técnico-mecánica" date={v.tecnoExpires} />
             <DocRow label="Póliza" date={v.insuranceExpires} extra={[v.insuranceCompany, v.insurancePolicy].filter(Boolean).join(' · ')} />
-            {(v.driverName || v.driverLicenseExpires) && <DocRow label="Licencia del conductor" date={v.driverLicenseExpires} extra={v.driverLicense} />}
+            {v.driver && <DocRow label="Licencia del conductor" date={v.driver.licenseExpires} extra={`${v.driver.licenseNumber} · categoría ${v.driver.licenseCategory}`} />}
           </Card>
+          {v.driver && (
+            <Card title="Conductor">
+              <div className="driver-card">
+                <span className="avatar-lg"><MdPerson /></span>
+                <div className="grow">
+                  <strong>{v.driver.fullName}</strong>
+                  <small>C.C. {v.driver.identification}</small>
+                  <small><a href={`tel:${v.driver.phone}`}><MdPhone /> {v.driver.phone}</a></small>
+                  <LicenseBadge driver={v.driver} />
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
         <div className="stack">
           <Card title="Gasto por mes" subtitle="Combustible y mantenimiento, últimos 6 meses">
