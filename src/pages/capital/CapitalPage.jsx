@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { MdAdd, MdRemove, MdAccountBalance, MdSavings, MdShield, MdEdit, MdHistory, MdPerson, MdTrendingUp } from 'react-icons/md'
+import { CashTransfers } from './CashTransfers'
 import api, { errorMessage } from '../../api/client'
 import { Avatar, Badge, Card, Empty, Field, Kpi, Modal, PageHead, Spinner, useToast } from '../../components/ui'
 import { MoneyInput } from '../../components/forms'
 import { formatDateTime, formatMoney } from '../../utils/format'
 
-const MOVE_TONES = { aporte: 'ok', retiro: 'bad', asignacion: 'dark', devolucion_asignacion: 'warn', desembolso: 'dark', reverso_desembolso: 'brand', recaudo: 'ok', ajuste: 'warn', gasto: 'bad', reverso_gasto: 'brand' }
+const MOVE_TONES = { aporte: 'ok', retiro: 'bad', asignacion: 'dark', devolucion_asignacion: 'warn', desembolso: 'dark', reverso_desembolso: 'brand', recaudo: 'ok', ajuste: 'warn', gasto: 'bad', reverso_gasto: 'brand', traslado: 'warn' }
 
 export const MovementsTable = ({ rows, showAccount = true }) => (
   !rows ? <div className="splash" style={{ minHeight: 140 }}><Spinner /></div>
@@ -97,6 +98,8 @@ const CapitalPage = () => {
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setModal({ kind: 'reserva' })}><MdEdit /> Cambiar reserva</button>
         </div>
       </div>
+
+      <CashTransfers onChanged={() => { load(); loadMoves() }} toast={toast} />
 
       <Card flush title="Prestamistas" subtitle="Asigna o quita dinero según el comportamiento de cada ruta" icon={<MdPerson />}>
         {!data.lenders.length ? <Empty icon={<MdPerson />}>No hay prestamistas. Créalos en Usuarios.</Empty> : (
