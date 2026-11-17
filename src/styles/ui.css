@@ -876,3 +876,13 @@ small.visit-note { color: var(--ink-2) !important; display: flex !important; ali
 .receipt-input .photo-actions { display: flex; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px; }
 .receipt-proof { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
 .muted-icon { vertical-align: -3px; margin-left: 5px; color: var(--muted); }
+
+/* ---------- KU-028 · Mi plan destacado en el menú ---------- */
+.sidebar-plan { display: flex; align-items: center; gap: 10px; margin: 0 14px 6px; padding: 9px 12px; border-radius: var(--radius-sm); background: rgba(16, 185, 129, .1); border: 1px solid rgba(16, 185, 129, .35); color: var(--white); text-decoration: none; transition: background .15s, border-color .15s; }
+.sidebar-plan > svg:first-child { font-size: 20px; color: var(--brand); flex-shrink: 0; }
+.sidebar-plan .nav-label { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.sidebar-plan small { font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--gray-400); }
+.sidebar-plan strong { font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-plan em { align-self: flex-start; margin-top: 4px; font-style: normal; font-size: 10.5px; font-weight: 700; color: var(--black); background: var(--warn); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.sidebar-plan .go { color: var(--gray-500); font-size: 18px; flex-shrink: 0; }
+.sidebar-plan:hover, .sidebar-plan.active { background: rgba(16, 185, 129, .18); border-color: var(--brand); }
