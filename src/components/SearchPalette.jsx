@@ -1,0 +1,128 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom'
+import { MdSearch, MdPersonAdd, MdAddCard, MdPayments, MdReceiptLong, MdLockOutline, MdPeople, MdRequestQuote, MdReceipt, MdInventory2, MdManageAccounts, MdNorthEast, MdKeyboardReturn, MdTwoWheeler } from 'react-icons/md'
+import api from '../api/client'
+import { useAuth } from '../context/AuthContext'
+import { navFor } from '../utils/nav'
+import { Spinner } from './ui'
+
+// Acciones rápidas por rol (aparecen sin escribir nada, y se filtran al escribir).
+const ACTIONS = {
+  administrador: [
+    { label: 'Nuevo cliente', hint: 'Registrar un cliente', to: '/clientes?nuevo=1', icon: MdPersonAdd, words: 'crear registrar cliente' },
+    { label: 'Nuevo crédito', hint: 'Prestar efectivo o un producto', to: '/creditos/nuevo', icon: MdAddCard, words: 'prestar credito prestamo' },
+    { label: 'Registrar pago', hint: 'Cobrar una cuota o un abono', to: '/pagos?nuevo=1', icon: MdPayments, words: 'cobrar pago cuota abono' },
+    { label: 'Registrar gasto', hint: 'Gasolina, almuerzo, etc.', to: '/gastos?nuevo=1', icon: MdReceiptLong, words: 'gasto gasolina' }
+  ],
+  prestamista: [
+    { label: 'Registrar pago', hint: 'Cobrar una cuota o un abono', to: '/pagos?nuevo=1', icon: MdPayments, words: 'cobrar pago cuota abono' },
+    { label: 'Nuevo cliente', hint: 'Registrar un cliente', to: '/clientes?nuevo=1', icon: MdPersonAdd, words: 'crear registrar cliente' },
+    { label: 'Nuevo crédito', hint: 'Prestar efectivo o un producto', to: '/creditos/nuevo', icon: MdAddCard, words: 'prestar credito prestamo' },
+    { label: 'Registrar gasto', hint: 'Gasolina, almuerzo, etc.', to: '/gastos?nuevo=1', icon: MdReceiptLong, words: 'gasto gasolina' },
+    { label: 'Cerrar jornada', hint: 'Cuadrar la caja del día', to: '/cierre', icon: MdLockOutline, words: 'cierre cuadre caja' }
+  ]
+}
+const GROUP_ICON = { clientes: MdPeople, creditos: MdRequestQuote, pagos: MdReceipt, gastos: MdReceiptLong, productos: MdInventory2, usuarios: MdManageAccounts, vehiculos: MdTwoWheeler }
+const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+
+export const useSearchShortcut = (open) => {
+  useEffect(() => {
+    const onKey = (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); open() } }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open])
+}
+
+// Buscador global: clientes, créditos (#12), recibos (RC-0003), gastos (GA-0002), productos, usuarios,
+// páginas del menú y acciones rápidas. Se abre con Ctrl+K o con la lupa de la barra superior.
+const SearchPalette = ({ onClose }) => {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const input = useRef(null)
+  const listRef = useRef(null)
+  const [q, setQ] = useState('')
+  const [remote, setRemote] = useState({ q: '', groups: [] })
+  const [loading, setLoading] = useState(false)
+  const [active, setActive] = useState(0)
+
+  useEffect(() => { input.current?.focus() }, [])
+  useEffect(() => {
+    const t = q.trim()
+    if (t.length < 2) { setRemote({ q: t, groups: [] }); setLoading(false); return undefined }
+    setLoading(true)
+    const timer = setTimeout(() => {
+      api.get('/buscar', { params: { q: t } }).then(({ data }) => setRemote(data)).catch(() => setRemote({ q: t, groups: [] })).finally(() => setLoading(false))
+    }, 220)
+    return () => clearTimeout(timer)
+  }, [q])
+
+  const groups = useMemo(() => {
+    const t = norm(q.trim())
+    const pages = navFor(user.role).flatMap((s) => s.items.filter((i) => !i.soon).map((i) => ({ id: i.to, title: i.label, subtitle: s.title, to: i.to, icon: i.icon })))
+    const acts = (ACTIONS[user.role] || []).map((a) => ({ id: a.to, title: a.label, subtitle: a.hint, to: a.to, icon: a.icon, words: a.words }))
+    const match = (x) => !t || norm(`${x.title} ${x.subtitle} ${x.words || ''}`).includes(t)
+    const out = []
+    if (!t) out.push({ key: 'acciones', label: 'Acciones rápidas', items: acts })
+    const remoteGroups = remote.q === q.trim() ? remote.groups : []
+    out.push(...remoteGroups.map((g) => ({ ...g, items: g.items.map((i) => ({ ...i, icon: GROUP_ICON[g.key] })) })))
+    if (t) {
+      const a = acts.filter(match)
+      if (a.length) out.push({ key: 'acciones', label: 'Acciones', items: a })
+    }
+    const p = pages.filter(match).slice(0, t ? 5 : 8)
+    if (p.length) out.push({ key: 'paginas', label: 'Ir a', items: p })
+    return out
+  }, [q, remote, user.role])
+  const flat = useMemo(() => groups.flatMap((g) => g.items.map((i) => ({ ...i, key: `${g.key}-${i.id}` }))), [groups])
+  useEffect(() => { setActive(0) }, [groups])
+  useEffect(() => { listRef.current?.querySelector('.on')?.scrollIntoView({ block: 'nearest' }) }, [active])
+
+  const go = (item) => { if (!item) return; onClose(); navigate(item.to) }
+  const onKey = (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => Math.min(a + 1, flat.length - 1)) }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)) }
+    else if (e.key === 'Enter') { e.preventDefault(); go(flat[active]) }
+    else if (e.key === 'Escape') onClose()
+  }
+  const searched = q.trim().length >= 2 && !loading && remote.q === q.trim()
+  const nothing = searched && !remote.groups.length
+  let idx = -1
+
+  return createPortal(
+    <div className="palette-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="palette" role="dialog" aria-label="Buscar">
+        <div className="palette-input">
+          <MdSearch />
+          <input ref={input} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey} placeholder="Buscar cliente, cédula, celular, #crédito, RC-0001…" aria-label="Buscar" />
+          {loading ? <Spinner /> : <kbd className="kbd">Esc</kbd>}
+        </div>
+        <div className="palette-list" ref={listRef}>
+          {nothing && <div className="palette-empty">Sin resultados para "{q.trim()}". Prueba con la cédula, el celular o el número del crédito.</div>}
+          {groups.map((g) => (
+            <div key={g.key} className="palette-group">
+              <div className="palette-label">{g.label}</div>
+              {g.items.map((i) => {
+                idx += 1
+                const n = idx
+                const Icon = i.icon || MdNorthEast
+                return (
+                  <button key={`${g.key}-${i.id}`} type="button" className={`palette-item${n === active ? ' on' : ''}`} onMouseMove={() => setActive(n)} onClick={() => go(i)}>
+                    {i.image ? <img src={i.image} alt="" /> : <span className="palette-icon"><Icon /></span>}
+                    <span className="grow"><strong>{i.title}</strong>{i.subtitle && <small>{i.subtitle}</small>}</span>
+                    {i.badge && <span className="badge muted">{i.badge}</span>}
+                    {n === active && <MdKeyboardReturn className="palette-enter" />}
+                  </button>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+        <div className="palette-foot hide-sm"><span><kbd className="kbd">↑</kbd><kbd className="kbd">↓</kbd> moverse</span><span><kbd className="kbd">Enter</kbd> abrir</span><span><kbd className="kbd">Ctrl</kbd><kbd className="kbd">K</kbd> buscar desde cualquier pantalla</span></div>
+      </div>
+    </div>,
+    document.body
+  )
+}
+
+export default SearchPalette

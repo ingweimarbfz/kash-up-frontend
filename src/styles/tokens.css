@@ -1,0 +1,35 @@
+/* =====================================================================
+   QuontUp360 · Tokens de marca
+   Base en negro y grises; esmeralda como acento de dinero y crecimiento.
+   ===================================================================== */
+:root {
+  /* Neutros */
+  --black: #0A0A0B;
+  --graphite: #18181B;
+  --gray-800: #27272A;
+  --gray-700: #3F3F46;
+  --gray-500: #71717A;
+  --gray-400: #A1A1AA;
+  --gray-300: #D4D4D8;
+  --gray-200: #E4E4E7;
+  --gray-100: #F4F4F5;
+  --white: #FFFFFF;
+
+  /* Acento y estados */
+  --brand: #10B981;
+  --brand-600: #059669;
+  --brand-50: #ECFDF5;
+  --brand-100: #D1FAE5;
+  --ok: #10B981;  --ok-50: #ECFDF5;
+  --warn: #F59E0B; --warn-50: #FFFBEB;
+  --bad: #EF4444;  --bad-50: #FEF2F2;
+  --info: #3F3F46; --info-50: #F4F4F5;
+
+  /* Series de gráficas (en este orden) */
+  --chart-1: #10B981;
+  --chart-2: #18181B;
+  --chart-3: #71717A;
+  --chart-4: #A1A1AA;
+  --chart-5: #F59E0B;
+  --chart-6: #EF4444;
+}
