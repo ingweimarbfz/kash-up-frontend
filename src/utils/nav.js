@@ -1,6 +1,6 @@
 import {
   MdMenuBook, MdDashboard, MdPeople, MdRequestQuote, MdPayments, MdRoute, MdInventory2, MdPercent, MdBarChart,
-  MdManageAccounts, MdSettings, MdHistory, MdPerson, MdReceiptLong, MdWarningAmber, MdMap, MdSavings, MdAccountBalance, MdAccountBalanceWallet, MdLockOutline, MdPlaylistAddCheck, MdTwoWheeler, MdBadge, MdPlace, MdNotificationsActive
+  MdManageAccounts, MdSettings, MdHistory, MdPerson, MdReceiptLong, MdWarningAmber, MdMap, MdSavings, MdAccountBalance, MdAccountBalanceWallet, MdLockOutline, MdPlaylistAddCheck, MdTwoWheeler, MdBadge, MdPlace, MdNotificationsActive, MdWorkspacePremium
 } from 'react-icons/md'
 
 export const ROLE_LABELS = { administrador: 'Administrador', prestamista: 'Prestamista', cliente: 'Cliente', conductor: 'Conductor' }
@@ -41,7 +41,8 @@ const NAV = {
         { to: '/usuarios', label: 'Usuarios', icon: MdManageAccounts },
         { to: '/notificaciones', label: 'Notificaciones', icon: MdNotificationsActive },
         { to: '/configuracion', label: 'Configuración', icon: MdSettings },
-        { to: '/auditoria', label: 'Auditoría', icon: MdHistory }
+        { to: '/auditoria', label: 'Auditoría', icon: MdHistory },
+        { to: '/mi-plan', label: 'Mi plan', icon: MdWorkspacePremium }
       ]
     }
   ],
@@ -84,7 +85,19 @@ const NAV = {
 
 export const ACCOUNT_NAV = [{ to: '/perfil', label: 'Mi perfil', icon: MdPerson }]
 
-export const navFor = (role) => NAV[role] || []
+// Funcionalidad del plan que habilita cada pantalla (KU-026). Lo que no aparece es del núcleo.
+export const FEATURE_OF = {
+  '/solicitudes': 'solicitudes', '/inventario': 'productos', '/capital': 'cajas', '/mi-caja': 'cajas',
+  '/rutas': 'rutas', '/mi-ruta': 'rutas', '/cierre': 'gastos', '/gastos': 'gastos', '/mapa': 'mapa',
+  '/vehiculos': 'vehiculos', '/conductores': 'conductores', '/reportes': 'reportes', '/bitacora': 'bitacora',
+  '/auditoria': 'auditoria', '/notificaciones': 'telegram', '/mis-notificaciones': 'telegram',
+  '/mis-creditos': 'portal_cliente', '/mis-pagos': 'portal_cliente'
+}
+
+// Menú del rol, sin las pantallas que el plan del negocio no incluye.
+export const navFor = (role, has = () => true) => (NAV[role] || [])
+  .map((s) => ({ ...s, items: s.items.filter((i) => has(FEATURE_OF[i.to])) }))
+  .filter((s) => s.items.length)
 
 // Título de la página actual para la barra superior.
 export const titleFor = (role, pathname) => {

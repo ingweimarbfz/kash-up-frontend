@@ -2,6 +2,8 @@ import React, { Suspense, lazy } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { SettingsProvider } from './context/SettingsContext'
+import { PlanProvider, usePlan } from './context/PlanContext'
+import { FEATURE_OF } from './utils/nav'
 import AppLayout from './layout/AppLayout'
 import Login from './components/Login'
 import { Spinner } from './components/ui'
@@ -39,6 +41,9 @@ const MyNotificationsPage = lazy(() => import('./pages/notificaciones/MyNotifica
 const ReportsPage = lazy(() => import('./pages/reportes/ReportsPage'))
 const LogbookPage = lazy(() => import('./pages/bitacora/LogbookPage'))
 const CustomerDetail = lazy(() => import('./pages/clientes/CustomerDetail'))
+const MyPlanPage = lazy(() => import('./pages/MyPlanPage'))
+const PlatformApp = lazy(() => import('./platform/PlatformApp'))
+const PricingPage = lazy(() => import('./platform/PricingPage'))
 
 const STAFF = ['administrador', 'prestamista']
 const FLEET = ['administrador', 'prestamista', 'conductor']
@@ -52,6 +57,16 @@ const Protected = ({ roles, children }) => {
   if (loading) return <Splash />
   if (!user) return <Navigate to="/login" replace state={{ from: location }} />
   if (roles && !roles.includes(user.role)) return <Navigate to="/" replace />
+  return <PlanGate>{children}</PlanGate>
+}
+
+// Pantalla no incluida en el plan del negocio: vuelve al inicio (el administrador ve Mi plan).
+const PlanGate = ({ children }) => {
+  const { has } = usePlan()
+  const { user } = useAuth()
+  const { pathname } = useLocation()
+  const key = Object.keys(FEATURE_OF).find((p) => pathname === p || pathname.startsWith(`${p}/`))
+  if (key && !has(FEATURE_OF[key])) return <Navigate to={user.role === 'administrador' ? '/mi-plan' : '/'} replace />
   return children
 }
 
@@ -67,8 +82,11 @@ const App = () => (
       <SettingsProvider>
         <Suspense fallback={<Splash />}>
           <Routes>
+            {/* KU-026: sitio de planes para clientes y plataforma de KashUp (sesión propia). */}
+            <Route path="/precios" element={<PricingPage />} />
+            <Route path="/plataforma/*" element={<PlatformApp />} />
             <Route path="/login" element={<LoginRoute />} />
-            <Route element={<Protected><AppLayout /></Protected>}>
+            <Route element={<Protected><PlanProvider><AppLayout /></PlanProvider></Protected>}>
               <Route index element={<Dashboard />} />
               <Route path="perfil" element={<ProfilePage />} />
               <Route path="sedes" element={<Protected roles={['administrador']}><SitesPage /></Protected>} />
@@ -76,6 +94,7 @@ const App = () => (
               <Route path="configuracion" element={<Protected roles={['administrador']}><SettingsPage /></Protected>} />
               <Route path="notificaciones" element={<Protected roles={['administrador']}><NotificationsPage /></Protected>} />
               <Route path="mis-notificaciones" element={<Protected roles={['prestamista']}><MyNotificationsPage /></Protected>} />
+              <Route path="mi-plan" element={<Protected roles={['administrador']}><MyPlanPage /></Protected>} />
               <Route path="auditoria" element={<Protected roles={['administrador']}><AuditPage /></Protected>} />
               <Route path="clientes" element={<Protected roles={STAFF}><CustomersPage /></Protected>} />
               <Route path="clientes/:id" element={<Protected roles={STAFF}><CustomerDetail /></Protected>} />
