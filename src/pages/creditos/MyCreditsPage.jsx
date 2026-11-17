@@ -30,7 +30,10 @@ const MyCreditsPage = () => {
                 </div>
                 <div className="grid grid-2-1">
                   <ScheduleTable rows={c.installments} withStatus limit={10} />
-                  <CreditSummary c={c} />
+                  <aside className="credit-box">
+                    <h4>Condiciones del crédito</h4>
+                    <CreditSummary c={c} />
+                  </aside>
                 </div>
               </div>
             </Card>
