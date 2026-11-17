@@ -6,7 +6,7 @@ import { DriverForm, LicenseBadge } from './common'
 
 // Acceso del conductor a la app (KU-021): usuario y contraseña, o enlace con su usuario de prestamista.
 const AccessModal = ({ d, onClose, onSaved }) => {
-  const [f, setF] = useState({ username: d.access?.username || d.identification, password: '' })
+  const [f, setF] = useState({ username: d.access?.username || d.identification, resetPassword: false })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const save = async (e) => {
@@ -26,7 +26,9 @@ const AccessModal = ({ d, onClose, onSaved }) => {
         ) : <>
           <small className="hint">El conductor entra a KashUp y solo ve el reporte de los vehículos que conduce: tanqueos, gastos y mantenimientos. No puede registrar ni cambiar nada.</small>
           <Field label="Usuario" htmlFor="acc-u" required><input id="acc-u" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value })} autoComplete="off" /></Field>
-          <Field label={d.access ? 'Nueva contraseña (opcional)' : 'Contraseña'} htmlFor="acc-p" required={!d.access} hint="Mínimo 8 caracteres"><input id="acc-p" type="text" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} autoComplete="new-password" /></Field>
+          {d.access
+            ? <label className="check"><input type="checkbox" checked={f.resetPassword} onChange={(e) => setF({ ...f, resetPassword: e.target.checked })} /> Volver la contraseña al número de documento ({d.identification})</label>
+            : <div className="alert">La contraseña inicial es su número de documento: <strong>{d.identification}</strong>. Al entrar la puede cambiar en "Mi perfil".</div>}
         </>}
         {error && <div className="alert bad">{error}</div>}
       </form>

@@ -29,7 +29,7 @@ const ScoreCard = ({ score }) => (
 )
 
 const AccessModal = ({ customer, onClose, onSaved }) => {
-  const [form, setForm] = useState({ username: customer.user?.username || customer.identification, password: '', active: customer.user?.active ?? true })
+  const [form, setForm] = useState({ username: customer.user?.username || customer.identification, active: customer.user?.active ?? true })
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const submit = async (e) => {
@@ -42,7 +42,7 @@ const AccessModal = ({ customer, onClose, onSaved }) => {
       <form id="access-form" className="form-grid" onSubmit={submit}>
         <p className="span-2 disabled-text" style={{ margin: 0 }}>Con este usuario el cliente entra a KashUp y consulta sus créditos, cuotas y pagos.</p>
         <Field label="Usuario" htmlFor="au" required><input id="au" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} autoCapitalize="none" /></Field>
-        <Field label={customer.user ? 'Nueva contraseña' : 'Contraseña'} htmlFor="ap" hint={customer.user ? 'Vacía para no cambiarla' : 'Mínimo 8 caracteres'}><input id="ap" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} autoComplete="new-password" /></Field>
+        <Field label="Contraseña" htmlFor="ap" hint="Siempre es el número de documento del cliente"><input id="ap" value={customer.identification} readOnly disabled /></Field>
         {customer.user && <label className="check span-2"><input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} /> Acceso activo</label>}
         {error && <div className="alert bad span-2">{error}</div>}
       </form>

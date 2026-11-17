@@ -3,7 +3,7 @@ import { MdCheck, MdLocalGasStation, MdBuild, MdSpeed, MdTwoWheeler, MdDirection
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
 import { Badge, Field, Modal, Spinner } from '../../components/ui'
-import { MoneyInput, PhotoInput, Tabs } from '../../components/forms'
+import { DocIcon, MoneyInput, PhotoInput, Tabs } from '../../components/forms'
 import { formatDate, formatMoney } from '../../utils/format'
 import { todayBogota } from '../pagos/common'
 
@@ -105,7 +105,7 @@ export const LicenseBadge = ({ driver }) => {
   return <Badge tone={tone}>Licencia {driver.licenseCategory} {d < 0 ? `vencida hace ${-d} día(s)` : `vence el ${formatDate(driver.licenseExpires)}`}</Badge>
 }
 
-const DRIVER_EMPTY = { name: '', lastName: '', identification: '', phone: '', address: '', licenseNumber: '', licenseCategory: 'A2', licenseExpires: '', licensePhotoUrl: null, photoUrl: null, notes: '', active: true }
+const DRIVER_EMPTY = { name: '', lastName: '', identification: '', phone: '', address: '', licenseNumber: '', licenseCategory: 'A2', licenseExpires: '', licensePhotoUrl: null, photoUrl: null, idPhotoUrl: null, idPhotoBackUrl: null, notes: '', active: true }
 // Registro del conductor con su licencia de conducción.
 export const DriverForm = ({ driver, onClose, onSaved }) => {
   const [form, setForm] = useState(() => (driver ? Object.fromEntries(Object.keys(DRIVER_EMPTY).map((k) => [k, driver[k] ?? DRIVER_EMPTY[k]])) : DRIVER_EMPTY))
@@ -116,6 +116,7 @@ export const DriverForm = ({ driver, onClose, onSaved }) => {
     e.preventDefault(); e.stopPropagation(); setError('')
     if (!form.name.trim() || !form.identification.trim() || !form.phone.trim()) return setError('Nombre, documento y celular son obligatorios.')
     if (!form.licenseNumber.trim() || !form.licenseExpires) return setError('Registra el número de la licencia y su fecha de vencimiento.')
+    if (!form.photoUrl || !form.idPhotoUrl || !form.idPhotoBackUrl) return setError('Toma la foto del conductor y la de su documento por ambas caras.')
     setSaving(true)
     try { const { data } = driver ? await api.put(`/conductores/${driver.id}`, form) : await api.post('/conductores', form); onSaved(data) } catch (err) { setError(errorMessage(err)); setSaving(false) }
   }
@@ -125,7 +126,11 @@ export const DriverForm = ({ driver, onClose, onSaved }) => {
       footer={<><button type="button" className="btn" onClick={onClose}>Cancelar</button><button type="submit" form="drv-form" className="btn btn-primary" disabled={saving}>{saving ? <Spinner /> : <MdCheck />} Guardar</button></>}>
       <form id="drv-form" className="stack" onSubmit={submit} noValidate>
         <div className="form-grid">
-          <div className="span-2"><PhotoInput value={form.photoUrl} onChange={set('photoUrl')} label="Foto del conductor" capture="user" /></div>
+          <div className="span-2 photo-row">
+            <Field label="Foto del conductor" required><PhotoInput value={form.photoUrl} onChange={set('photoUrl')} label="Tomar foto" capture="user" /></Field>
+            <Field label="Documento · frente" required><PhotoInput doc value={form.idPhotoUrl} onChange={set('idPhotoUrl')} label="Frente" placeholder={<DocIcon side="front" />} /></Field>
+            <Field label="Documento · reverso" required><PhotoInput doc value={form.idPhotoBackUrl} onChange={set('idPhotoBackUrl')} label="Reverso" placeholder={<DocIcon side="back" />} /></Field>
+          </div>
           {input('name', 'Nombres', { req: true })}
           {input('lastName', 'Apellidos')}
           {input('identification', 'Cédula', { req: true, inputMode: 'numeric' })}
