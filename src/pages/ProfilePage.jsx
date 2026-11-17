@@ -56,12 +56,14 @@ const ProfilePage = () => {
             </form>
           </Card>
           <Card title="Cambiar contraseña" icon={<MdLock />}>
+            {user.role === 'cliente' ? <p className="muted" style={{ margin: 0 }}>Tu contraseña es tu número de documento. No se puede cambiar.</p> : (
             <form className="form-grid" onSubmit={changePass}>
               <div className="span-2"><Field label="Contraseña actual" htmlFor="cp"><input id="cp" type="password" autoComplete="current-password" value={pass.currentPassword} onChange={(e) => setPass({ ...pass, currentPassword: e.target.value })} /></Field></div>
               <Field label="Nueva contraseña" htmlFor="np" hint="Mínimo 8 caracteres"><input id="np" type="password" autoComplete="new-password" value={pass.newPassword} onChange={(e) => setPass({ ...pass, newPassword: e.target.value })} /></Field>
               <Field label="Confirmar" htmlFor="cf"><input id="cf" type="password" autoComplete="new-password" value={pass.confirm} onChange={(e) => setPass({ ...pass, confirm: e.target.value })} /></Field>
               <div className="span-2 right"><button type="submit" className="btn btn-primary" disabled={busy === 'pass'}>{busy === 'pass' && <Spinner />} Cambiar contraseña</button></div>
             </form>
+            )}
           </Card>
         </div>
       </div>
