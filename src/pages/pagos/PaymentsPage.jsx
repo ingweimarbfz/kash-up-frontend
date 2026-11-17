@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { MdAdd, MdSearch, MdPayments, MdChevronRight } from 'react-icons/md'
+import { MdAdd, MdSearch, MdPayments, MdChevronRight, MdReceipt } from 'react-icons/md'
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
 import { Badge, Card, Empty, Field, Kpi, Modal, PageHead, Spinner, useToast } from '../../components/ui'
@@ -116,7 +116,7 @@ const PaymentsPage = () => {
                         <td><strong>{p.number}</strong><br /><small>{formatDate(p.paidOn)}</small></td>
                         <td><div className="person"><img className="thumb" src={p.customer?.photoThumb} alt="" /><div><strong>{p.customer?.fullName}</strong><small><a className="link" onClick={(e) => { e.stopPropagation(); navigate(`/creditos/${p.credit?.id}`) }}>Crédito #{p.credit?.number}</a></small></div></div></td>
                         <td><PayKindBadge kind={p.kind} /></td>
-                        <td className="hide-md">{PAY_METHOD[p.method]}{p.reference ? <><br /><small>{p.reference}</small></> : null}</td>
+                        <td className="hide-md">{PAY_METHOD[p.method]}{p.hasReceipt && <MdReceipt className="muted-icon" title="Con comprobante" aria-label="Con comprobante" />}{p.method === 'transferencia' && !p.hasReceipt && <small className="text-warn"> · sin comprobante</small>}{p.reference ? <><br /><small>{p.reference}</small></> : null}</td>
                         {admin && <td className="hide-md"><small>{p.lender?.fullName || 'Negocio'}</small></td>}
                         <td className="num money"><strong>{formatMoney(p.amount)}</strong></td>
                         <td><PayStatusBadge status={p.status} /></td>
