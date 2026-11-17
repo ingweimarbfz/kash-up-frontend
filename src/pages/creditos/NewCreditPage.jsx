@@ -220,8 +220,8 @@ const NewCreditPage = () => {
             <div className="stack" style={{ gap: 14 }}>
               {form.references.map((r, i) => (
                 <div key={i} className="form-grid ref-block">
-                  <Field label="Nombre completo" htmlFor={`rn${i}`} required><input id={`rn${i}`} value={r.name} onChange={(e) => setRef(i, 'name', e.target.value)} /></Field>
-                  <Field label="Celular" htmlFor={`rp${i}`} required><input id={`rp${i}`} inputMode="numeric" value={r.phone} onChange={(e) => setRef(i, 'phone', e.target.value)} /></Field>
+                  <Field label="Nombre completo" htmlFor={`rn${i}`} required><input id={`rn${i}`} data-only="letters" value={r.name} onChange={(e) => setRef(i, 'name', e.target.value)} /></Field>
+                  <Field label="Celular" htmlFor={`rp${i}`} required><input id={`rp${i}`} inputMode="numeric" minLength={7} maxLength={10} value={r.phone} onChange={(e) => setRef(i, 'phone', e.target.value)} /></Field>
                   <Field label="Parentesco o relación" htmlFor={`rr${i}`}><input id={`rr${i}`} value={r.relationship} onChange={(e) => setRef(i, 'relationship', e.target.value)} placeholder="Hermana, vecino, jefe…" /></Field>
                   <Field label="Dirección" htmlFor={`ra${i}`}><input id={`ra${i}`} value={r.address} onChange={(e) => setRef(i, 'address', e.target.value)} /></Field>
                   {form.references.length > 1 && <div className="span-2 right"><button type="button" className="btn btn-sm btn-ghost" onClick={() => setForm((f) => ({ ...f, references: f.references.filter((_, j) => j !== i) }))}><MdDelete /> Quitar referencia</button></div>}

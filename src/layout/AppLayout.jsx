@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { MdMenu, MdChevronRight, MdLogout, MdPerson, MdKeyboardArrowDown, MdSearch, MdPlace, MdWorkspacePremium } from 'react-icons/md'
+import { MdMenu, MdChevronRight, MdLogout, MdPerson, MdKeyboardArrowDown, MdSearch, MdPlace, MdWorkspacePremium, MdSwapHoriz } from 'react-icons/md'
 import api, { getSiteFilter, setSiteFilter } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useSettings } from '../context/SettingsContext'
@@ -37,9 +37,10 @@ const SiteSelector = ({ value, onChange }) => {
 }
 
 const UserMenu = () => {
-  const { user, logout } = useAuth()
+  const { user, logout, switchProfile } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+  const others = (user.profiles || []).filter((r) => r !== user.role)
   const ref = useRef(null)
   useEffect(() => {
     const onClick = (e) => ref.current && !ref.current.contains(e.target) && setOpen(false)
@@ -59,6 +60,7 @@ const UserMenu = () => {
       {open && (
         <div className="dropdown" role="menu">
           <button type="button" onClick={() => { setOpen(false); navigate('/perfil') }}><MdPerson /> Mi perfil</button>
+          {others.map((r) => <button key={r} type="button" onClick={() => { setOpen(false); switchProfile(r) }}><MdSwapHoriz /> Entrar como {ROLE_LABELS[r].toLowerCase()}</button>)}
           <hr />
           <button type="button" className="danger" onClick={logout}><MdLogout /> Cerrar sesión</button>
         </div>

@@ -131,15 +131,15 @@ export const DriverForm = ({ driver, onClose, onSaved }) => {
             <Field label="Documento · frente" required><PhotoInput doc value={form.idPhotoUrl} onChange={set('idPhotoUrl')} label="Frente" placeholder={<DocIcon side="front" />} /></Field>
             <Field label="Documento · reverso" required><PhotoInput doc value={form.idPhotoBackUrl} onChange={set('idPhotoBackUrl')} label="Reverso" placeholder={<DocIcon side="back" />} /></Field>
           </div>
-          {input('name', 'Nombres', { req: true })}
-          {input('lastName', 'Apellidos')}
-          {input('identification', 'Cédula', { req: true, inputMode: 'numeric' })}
-          {input('phone', 'Celular', { req: true, inputMode: 'tel', placeholder: '3001234567' })}
+          {input('name', 'Nombres', { req: true, 'data-only': 'letters' })}
+          {input('lastName', 'Apellidos', { 'data-only': 'letters' })}
+          {input('identification', 'Cédula', { req: true, inputMode: 'numeric', minLength: 5, maxLength: 15 })}
+          {input('phone', 'Celular', { req: true, inputMode: 'numeric', minLength: 7, maxLength: 10, placeholder: '3001234567' })}
           <div className="span-2">{input('address', 'Dirección')}</div>
         </div>
         <h4 className="form-section">Licencia de conducción</h4>
         <div className="form-grid">
-          {input('licenseNumber', 'Número de licencia', { req: true })}
+          {input('licenseNumber', 'Número de licencia', { req: true, 'data-only': 'alnum', autoCapitalize: 'characters', minLength: 3, maxLength: 20 })}
           <Field label="Categoría" htmlFor="d-cat" required><select id="d-cat" value={form.licenseCategory} onChange={set('licenseCategory')}>{LICENSE_CATS.map((c) => <option key={c} value={c}>{c}{c.startsWith('A') ? ' · motos' : c.startsWith('B') ? ' · carros particulares' : ' · servicio público'}</option>)}</select></Field>
           {input('licenseExpires', 'Vence', { req: true, type: 'date' })}
           {driver && <label className="check"><input type="checkbox" checked={form.active} onChange={set('active')} /> Activo</label>}

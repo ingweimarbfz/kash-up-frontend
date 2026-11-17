@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { MdPhotoCamera, MdLock } from 'react-icons/md'
+import { MdPhotoCamera, MdPhotoLibrary, MdLock } from 'react-icons/md'
 import api, { errorMessage } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { Avatar, Badge, Card, Field, PageHead, Spinner, useToast } from '../components/ui'
@@ -38,7 +38,10 @@ const ProfilePage = () => {
         <Card>
           <div className="profile-card">
             <Avatar user={user} size="lg" />
-            <label className="btn btn-sm">{busy === 'photo' ? <Spinner /> : <MdPhotoCamera />} Cambiar foto<input type="file" accept="image/*" capture="user" hidden onChange={onPhoto} /></label>
+            <div className="photo-actions center">
+              <label className="btn btn-sm">{busy === 'photo' ? <Spinner /> : <MdPhotoCamera />} Tomar foto<input type="file" accept="image/*" capture="user" hidden onChange={onPhoto} /></label>
+              <label className="btn btn-sm"><MdPhotoLibrary /> Cargar foto<input type="file" accept="image/*" hidden onChange={onPhoto} /></label>
+            </div>
             <h2>{user.fullName}</h2>
             <Badge tone="dark">{ROLE_LABELS[user.role]}</Badge>
             <dl className="meta">
@@ -50,7 +53,7 @@ const ProfilePage = () => {
         <div className="stack">
           <Card title="Datos de contacto">
             <form className="form-grid" onSubmit={(e) => { e.preventDefault(); save(contact, 'contact', 'Datos guardados') }}>
-              <Field label="Celular" htmlFor="phone"><input id="phone" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} inputMode="numeric" /></Field>
+              <Field label="Celular" htmlFor="phone"><input id="phone" inputMode="numeric" minLength={7} maxLength={10} value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} inputMode="numeric" /></Field>
               <Field label="Correo" htmlFor="email"><input id="email" type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} /></Field>
               <div className="span-2 right"><button type="submit" className="btn btn-primary" disabled={busy === 'contact'}>{busy === 'contact' && <Spinner />} Guardar</button></div>
             </form>
