@@ -140,7 +140,7 @@ const SitesSummary = ({ rows }) => {
 
 const AdminDashboard = ({ d, x, sites }) => (
   <>
-    <div className="grid grid-kpi">
+    <div className="grid grid-kpi kpi-fill">
       <Kpi label="Cartera activa" value={formatMoney(d.kpis.carteraActiva)} icon={MdAccountBalanceWallet} tone="dark" note="Capital pendiente de cobro" />
       <Kpi label="Recaudo de hoy" value={formatMoney(d.kpis.recaudoHoy)} icon={MdPayments} tone="brand" note="Pagos registrados hoy" />
       <Kpi label="En mora" value={formatMoney(d.kpis.enMora)} icon={MdWarningAmber} tone="bad" note="Cuotas vencidas sin pagar" />
