@@ -111,8 +111,8 @@ small { color: var(--muted); }
 .user-menu-btn .who { text-align: left; line-height: 1.2; }
 .user-menu-btn .who strong { display: block; font-size: 13px; }
 .user-menu-btn .who span { font-size: 12px; color: var(--muted); }
-.dropdown { position: absolute; right: 0; top: calc(100% + 8px); width: 210px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 6px; z-index: 50; }
-.dropdown button { width: 100%; display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 0; background: none; border-radius: 8px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+.dropdown { position: absolute; right: 0; top: calc(100% + 8px); min-width: 210px; width: max-content; max-width: calc(100vw - 24px); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 6px; z-index: 50; }
+.dropdown button { width: 100%; display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 0; background: none; border-radius: 8px; font-size: 13px; color: var(--ink-2); cursor: pointer; text-align: left; white-space: nowrap; }
 .dropdown button:hover { background: var(--gray-100); }
 .dropdown .danger { color: var(--bad); }
 .dropdown hr { border: 0; border-top: 1px solid var(--line-2); margin: 6px 0; }
