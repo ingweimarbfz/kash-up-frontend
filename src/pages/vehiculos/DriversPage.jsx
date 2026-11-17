@@ -24,7 +24,7 @@ const AccessModal = ({ d, onClose, onSaved }) => {
         {d.isLender ? (
           <div className="alert ok">{d.fullName} también es prestamista. No necesita otro usuario: se enlaza a su cuenta de prestamista y ve el vehículo en "Mi vehículo".</div>
         ) : <>
-          <small className="hint">El conductor entra a KashUp y solo ve el reporte de los vehículos que conduce: tanqueos, gastos y mantenimientos. No puede registrar ni cambiar nada.</small>
+          <small className="hint">El conductor entra a QuontUp360 y solo ve el reporte de los vehículos que conduce: tanqueos, gastos y mantenimientos. No puede registrar ni cambiar nada.</small>
           <Field label="Usuario" htmlFor="acc-u" required><input id="acc-u" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value })} autoComplete="off" /></Field>
           {d.access
             ? <label className="check"><input type="checkbox" checked={f.resetPassword} onChange={(e) => setF({ ...f, resetPassword: e.target.checked })} /> Volver la contraseña al número de documento ({d.identification})</label>

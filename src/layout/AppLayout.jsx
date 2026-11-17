@@ -8,7 +8,7 @@ import { usePlan } from '../context/PlanContext'
 import { navFor, titleFor, ACCOUNT_NAV, ROLE_LABELS } from '../utils/nav'
 import { Avatar } from '../components/ui'
 import { formatDate } from '../utils/format'
-import { KashLogo } from '../components/Logo'
+import { BrandLogo } from '../components/Logo'
 import SearchPalette, { useSearchShortcut } from '../components/SearchPalette'
 
 // Fecha corta: "Lun, 16 Nov 2026".
@@ -104,7 +104,7 @@ const AppLayout = () => {
     <div className={`app${collapsed ? ' sidebar-off' : ''}`}>
       <aside className={`sidebar${open ? ' open' : ''}`}>
         <div className="sidebar-brand">
-          {settings.logoUrl ? <img src={settings.logoUrl} alt={settings.businessName} /> : <KashLogo size={32} onDark />}
+          {settings.logoUrl ? <img src={settings.logoUrl} alt={settings.businessName} /> : <BrandLogo size={32} onDark />}
         </div>
         <div className="sidebar-org">
           <small>Negocio</small>
@@ -167,7 +167,7 @@ const AppLayout = () => {
             <button type="button" className="btn btn-ghost btn-icon menu-toggle" onClick={toggleMenu} aria-label="Menú" title={collapsed ? 'Mostrar menú lateral' : 'Ocultar menú lateral'}><MdMenu /></button>
             <div className="topbar-title">
               <small>{settings.businessName}{section && section !== 'General' ? ` · ${section}` : ''}</small>
-              <strong>{title || 'KashUp'}</strong>
+              <strong>{title || 'QuontUp360'}</strong>
             </div>
             {user.role !== 'cliente' && (
               <button type="button" className="topbar-search" onClick={openSearch} aria-label="Buscar (Ctrl+K)">

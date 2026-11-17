@@ -40,7 +40,7 @@ const AccessModal = ({ customer, onClose, onSaved }) => {
     <Modal title={customer.user ? 'Acceso del cliente' : 'Dar acceso al cliente'} onClose={onClose}
       footer={<><button type="button" className="btn" onClick={onClose}>Cancelar</button><button type="submit" form="access-form" className="btn btn-primary" disabled={saving}>{saving && <Spinner />} Guardar</button></>}>
       <form id="access-form" className="form-grid" onSubmit={submit}>
-        <p className="span-2 disabled-text" style={{ margin: 0 }}>Con este usuario el cliente entra a KashUp y consulta sus créditos, cuotas y pagos.</p>
+        <p className="span-2 disabled-text" style={{ margin: 0 }}>Con este usuario el cliente entra a QuontUp360 y consulta sus créditos, cuotas y pagos.</p>
         <Field label="Usuario" htmlFor="au" required><input id="au" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} autoCapitalize="none" /></Field>
         <Field label="Contraseña" htmlFor="ap" hint="Siempre es el número de documento del cliente"><input id="ap" value={customer.identification} readOnly disabled /></Field>
         {customer.user && <label className="check span-2"><input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} /> Acceso activo</label>}

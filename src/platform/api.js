@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { API_BASE } from '../api/client'
 
-// Sesión de la plataforma de KashUp: token aparte del de la app.
+// Sesión de la plataforma de QuontUp360: token aparte del de la app.
 const KEY = 'ku_plt_token'
 export const pltToken = {
   get: () => { try { return localStorage.getItem(KEY) } catch { return null } },

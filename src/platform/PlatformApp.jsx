@@ -4,7 +4,7 @@ import { MdDashboard, MdWorkspacePremium, MdTune, MdPublic, MdStorefront, MdInbo
 import papi, { pltToken } from './api'
 import { errorMessage } from '../api/client'
 import { Spinner } from '../components/ui'
-import { KashLogo } from '../components/Logo'
+import { BrandLogo } from '../components/Logo'
 import { SummaryPage, PlansPage, FeaturesPage, CountriesPage, OrgsPage, RequestsPage } from './pages'
 
 const NAV = [
@@ -31,10 +31,10 @@ const PlatformLogin = ({ onIn }) => {
   return (
     <div className="plt-login">
       <form className="login-card" onSubmit={submit} noValidate>
-        <div className="login-brand"><KashLogo size={38} /></div>
+        <div className="login-brand"><BrandLogo size={38} /></div>
         <span className="plt-tag">Plataforma</span>
         <h1>Planes y negocios</h1>
-        <p>Administra los planes, los precios por país y los negocios que usan KashUp.</p>
+        <p>Administra los planes, los precios por país y los negocios que usan QuontUp360.</p>
         <div className="field">
           <label htmlFor="pu">Usuario</label>
           <div className="input-icon"><MdPerson /><input id="pu" autoFocus autoCapitalize="none" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value })} placeholder="tu.usuario" /></div>
@@ -45,7 +45,7 @@ const PlatformLogin = ({ onIn }) => {
         </div>
         {error && <div className="alert bad" role="alert"><MdErrorOutline /> <span>{error}</span></div>}
         <button type="submit" className="btn btn-primary btn-block" disabled={busy}>{busy && <Spinner />} Entrar a la plataforma</button>
-        <small className="hint">Solo para el equipo de KashUp. Los negocios entran por <a className="link-btn" href="/login">la app</a>.</small>
+        <small className="hint">Solo para el equipo de QuontUp360. Los negocios entran por <a className="link-btn" href="/login">la app</a>.</small>
       </form>
     </div>
   )
@@ -71,8 +71,8 @@ const PlatformApp = () => {
   return (
     <div className="app plt">
       <aside className={`sidebar${open ? ' open' : ''}`}>
-        <div className="sidebar-brand"><KashLogo size={32} onDark /></div>
-        <div className="sidebar-org"><small>KashUp</small><strong>Plataforma de planes</strong></div>
+        <div className="sidebar-brand"><BrandLogo size={32} onDark /></div>
+        <div className="sidebar-org"><small>QuontUp360</small><strong>Plataforma de planes</strong></div>
         <nav className="sidebar-nav" aria-label="Plataforma">
           <div className="nav-section">
             <div className="nav-section-title">Administración</div>
@@ -98,7 +98,7 @@ const PlatformApp = () => {
         <div className="topbar-wrap">
           <header className="topbar">
             <button type="button" className="btn btn-ghost btn-icon menu-toggle" onClick={() => setOpen(true)} aria-label="Menú"><MdMenu /></button>
-            <div className="topbar-title"><small>Plataforma KashUp</small><strong>{cur.label}</strong></div>
+            <div className="topbar-title"><small>Plataforma QuontUp360</small><strong>{cur.label}</strong></div>
           </header>
         </div>
         <main className="content">

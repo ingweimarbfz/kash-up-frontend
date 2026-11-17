@@ -1,6 +1,6 @@
-# KashUp · Frontend
+# QuontUp360 · Frontend
 
-App web responsive (PC y celular) de KashUp: cobros, préstamos y crédito de productos.
+App web responsive (PC y celular) de QuontUp360: cobros, préstamos y crédito de productos.
 React 18 + Vite + React Router + Recharts. Diseño propio en negro y grises con acento esmeralda (`src/styles`).
 
 ## Arranque local

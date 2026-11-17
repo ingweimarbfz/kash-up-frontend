@@ -1,5 +1,5 @@
 /* =====================================================================
-   Sistema de diseño · KashUp
+   Sistema de diseño · QuontUp360
    Barra lateral negra, contenido en grises claros, acento esmeralda.
    Los tokens de color viven en tokens.css.
    ===================================================================== */
@@ -29,10 +29,11 @@ button, input, select, textarea { font-family: inherit; }
 small { color: var(--muted); }
 
 /* ---------- Marca ---------- */
-.kash-logo { display: inline-flex; align-items: center; gap: calc(var(--logo-size) * .3); }
-.kash-word { font-weight: 800; font-size: calc(var(--logo-size) * .62); letter-spacing: -.04em; color: var(--black); }
-.kash-word b { color: var(--brand); font-weight: 800; }
-.kash-logo.on-dark .kash-word { color: var(--white); }
+.brand-logo { display: inline-flex; align-items: center; gap: calc(var(--logo-size) * .3); }
+.brand-word { font-weight: 800; font-size: calc(var(--logo-size) * .62); letter-spacing: -.04em; color: var(--black); white-space: nowrap; line-height: 1; }
+.brand-word b { color: var(--brand); font-weight: 800; }
+.brand-word sup { color: var(--brand); font-weight: 700; font-size: .5em; letter-spacing: 0; vertical-align: .9em; margin-left: .04em; }
+.brand-logo.on-dark .brand-word { color: var(--white); }
 
 /* ---------- Layout ---------- */
 .app { display: flex; min-height: 100vh; }

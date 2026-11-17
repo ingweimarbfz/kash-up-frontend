@@ -1,5 +1,5 @@
-// Marca KashUp: nombre, lema y colores que usan los componentes y las gráficas.
-export const BRAND = 'KashUp'
+// Marca QuontUp360: nombre, lema y colores que usan los componentes y las gráficas.
+export const BRAND = 'QuontUp360'
 export const BRAND_TAGLINE = 'Cobros, préstamos y crédito de productos'
 
 // Colores de las gráficas (Recharts no lee variables CSS): mismo orden que --chart-* en tokens.css.
