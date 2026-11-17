@@ -4,6 +4,7 @@
 //    · data-only="digits" o inputMode="numeric" o type="tel": solo números (documento, celular, kilometraje…).
 //    · data-only="letters": letras con tildes y ñ, espacios, apóstrofo, punto y guion (nombres, apellidos, ciudad).
 //    · data-only="nit": números y guion (NIT o documento fiscal).
+//    · data-only="alnum": letras y números, sin espacios ni caracteres especiales (número de licencia).
 //    · inputMode="decimal": números con una coma o un punto (tasas, galones).
 //    · type="email": sin espacios.
 // 2. Al enviar un formulario se revisa el correo y la longitud mínima (minLength) de cada campo lleno.
@@ -13,12 +14,14 @@ export const EMAIL_RE = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i
 export const NAME_RE = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' .-]{2,60}$/
 export const PHONE_RE = /^[0-9]{7,10}$/
 export const DOC_RE = /^[0-9]{5,15}$/
+export const LICENSE_RE = /^[A-Za-z0-9]{3,20}$/
 export const USERNAME_RE = /^[a-z0-9._-]{3,30}$/i
 
 const FILTERS = {
   digits: (v) => v.replace(/\D/g, ''),
   letters: (v) => v.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ' .-]/g, ''),
   nit: (v) => v.replace(/[^0-9-]/g, ''),
+  alnum: (v) => v.replace(/[^A-Za-z0-9]/g, '').toUpperCase(),
   decimal: (v) => { const x = v.replace(/[^0-9.,]/g, ''); const i = x.search(/[.,]/); return i < 0 ? x : x.slice(0, i + 1) + x.slice(i + 1).replace(/[.,]/g, '') },
   email: (v) => v.replace(/\s/g, '')
 }
