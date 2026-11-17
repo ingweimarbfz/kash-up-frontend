@@ -41,8 +41,7 @@ const NAV = {
         { to: '/usuarios', label: 'Usuarios', icon: MdManageAccounts },
         { to: '/notificaciones', label: 'Notificaciones', icon: MdNotificationsActive },
         { to: '/configuracion', label: 'Configuración', icon: MdSettings },
-        { to: '/auditoria', label: 'Auditoría', icon: MdHistory },
-        { to: '/mi-plan', label: 'Mi plan', icon: MdWorkspacePremium }
+        { to: '/auditoria', label: 'Auditoría', icon: MdHistory }
       ]
     }
   ],
@@ -84,6 +83,8 @@ const NAV = {
 }
 
 export const ACCOUNT_NAV = [{ to: '/perfil', label: 'Mi perfil', icon: MdPerson }]
+// Mi plan va destacado debajo del negocio (KU-028); aquí solo para el título de la barra superior.
+const PLAN_NAV = { title: 'Administración', items: [{ to: '/mi-plan', label: 'Mi plan', icon: MdWorkspacePremium }] }
 
 // Funcionalidad del plan que habilita cada pantalla (KU-026). Lo que no aparece es del núcleo.
 export const FEATURE_OF = {
@@ -101,7 +102,7 @@ export const navFor = (role, has = () => true) => (NAV[role] || [])
 
 // Título de la página actual para la barra superior.
 export const titleFor = (role, pathname) => {
-  for (const s of [...navFor(role), { title: 'Cuenta', items: ACCOUNT_NAV }]) {
+  for (const s of [...navFor(role), PLAN_NAV, { title: 'Cuenta', items: ACCOUNT_NAV }]) {
     for (const i of s.items) {
       if (i.end ? pathname === i.to : pathname.startsWith(i.to)) return { section: s.title, title: i.label }
     }

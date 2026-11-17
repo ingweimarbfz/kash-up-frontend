@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { MdMenu, MdChevronRight, MdLogout, MdPerson, MdKeyboardArrowDown, MdSearch, MdPlace } from 'react-icons/md'
+import { MdMenu, MdChevronRight, MdLogout, MdPerson, MdKeyboardArrowDown, MdSearch, MdPlace, MdWorkspacePremium } from 'react-icons/md'
 import api, { getSiteFilter, setSiteFilter } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useSettings } from '../context/SettingsContext'
 import { usePlan } from '../context/PlanContext'
 import { navFor, titleFor, ACCOUNT_NAV, ROLE_LABELS } from '../utils/nav'
 import { Avatar } from '../components/ui'
+import { formatDate } from '../utils/format'
 import { KashLogo } from '../components/Logo'
 import SearchPalette, { useSearchShortcut } from '../components/SearchPalette'
 
@@ -94,7 +95,8 @@ const AppLayout = () => {
     ? <SiteSelector value={site} onChange={changeSite} />
     : user.site && user.role === 'prestamista' && <span className="site-chip" title="Tu sede"><MdPlace /> {user.site.name}</span>
 
-  const { has } = usePlan()
+  const plan = usePlan()
+  const { has } = plan
   const sections = navFor(user.role, has)
   const { section, title } = titleFor(user.role, pathname)
 
@@ -108,6 +110,18 @@ const AppLayout = () => {
           <small>Negocio</small>
           <strong>{settings.businessName}</strong>
         </div>
+        {/* KU-028: Mi plan a la vista, debajo del negocio (solo administrador). */}
+        {admin && (
+          <NavLink to="/mi-plan" className={({ isActive }) => `sidebar-plan${isActive ? ' active' : ''}`}>
+            <MdWorkspacePremium />
+            <span className="nav-label">
+              <small>Mi plan</small>
+              <strong>{plan.plan?.name || 'Sin plan'}</strong>
+              {plan.status === 'prueba' && <em>Prueba hasta {formatDate(plan.renewalDate)}</em>}
+            </span>
+            <MdChevronRight className="go" />
+          </NavLink>
+        )}
         {siteControl && <div className="sidebar-site show-md">{siteControl}</div>}
         <nav className="sidebar-nav" aria-label="Menú principal">
           {sections.map((s) => (
