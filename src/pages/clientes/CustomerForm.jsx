@@ -63,18 +63,18 @@ const CustomerForm = ({ initial, onClose, onSaved }) => {
         <Field label="Tipo de documento" htmlFor="docType">
           <select id="docType" value={form.docType} onChange={set('docType')}>{DOC_TYPES.map((d) => <option key={d}>{d}</option>)}</select>
         </Field>
-        <Field label="Número de documento" htmlFor="ident" required><input id="ident" value={form.identification} onChange={set('identification')} inputMode="numeric" /></Field>
-        <Field label="Nombres" htmlFor="cname" required><input id="cname" value={form.name} onChange={set('name')} /></Field>
-        <Field label="Apellidos" htmlFor="clast"><input id="clast" value={form.lastName} onChange={set('lastName')} /></Field>
-        <Field label="Celular" htmlFor="cphone" required><input id="cphone" value={form.phone || ''} onChange={set('phone')} inputMode="numeric" placeholder="3001234567" /></Field>
-        <Field label="Teléfono 2" htmlFor="cphone2"><input id="cphone2" value={form.phone2 || ''} onChange={set('phone2')} inputMode="numeric" /></Field>
+        <Field label="Número de documento" htmlFor="ident" required><input id="ident" minLength={5} maxLength={15} value={form.identification} onChange={set('identification')} inputMode="numeric" /></Field>
+        <Field label="Nombres" htmlFor="cname" required><input id="cname" data-only="letters" value={form.name} onChange={set('name')} /></Field>
+        <Field label="Apellidos" htmlFor="clast"><input id="clast" data-only="letters" value={form.lastName} onChange={set('lastName')} /></Field>
+        <Field label="Celular" htmlFor="cphone" required><input id="cphone" minLength={7} maxLength={10} value={form.phone || ''} onChange={set('phone')} inputMode="numeric" placeholder="3001234567" /></Field>
+        <Field label="Teléfono 2" htmlFor="cphone2"><input id="cphone2" minLength={7} maxLength={10} value={form.phone2 || ''} onChange={set('phone2')} inputMode="numeric" /></Field>
         <Field label="Correo" htmlFor="cemail"><input id="cemail" type="email" value={form.email || ''} onChange={set('email')} /></Field>
         <Field label="Fecha de nacimiento" htmlFor="cbirth"><input id="cbirth" type="date" value={form.birthDate || ''} onChange={set('birthDate')} /></Field>
 
         <div className="section-title">Ubicación y actividad</div>
         <Field label="Dirección de residencia" htmlFor="caddr" required><input id="caddr" value={form.address || ''} onChange={set('address')} placeholder="Calle 45 # 12-30" /></Field>
         <Field label="Barrio" htmlFor="cnb"><input id="cnb" value={form.neighborhood || ''} onChange={set('neighborhood')} /></Field>
-        <Field label="Ciudad" htmlFor="ccity"><input id="ccity" value={form.city || ''} onChange={set('city')} /></Field>
+        <Field label="Ciudad" htmlFor="ccity"><input id="ccity" data-only="letters" value={form.city || ''} onChange={set('city')} /></Field>
         <Field label="Ocupación o negocio" htmlFor="cocc"><input id="cocc" value={form.occupation || ''} onChange={set('occupation')} placeholder="Tienda, taxista, empleado…" /></Field>
         <div className="span-2"><Field label="Dirección del negocio o trabajo" htmlFor="cbaddr"><input id="cbaddr" value={form.businessAddress || ''} onChange={set('businessAddress')} /></Field></div>
         <div className="span-2"><Field label="Ubicación en el mapa" hint="Tómala en la casa o el negocio del cliente: la usa el rutero de cobro.">
