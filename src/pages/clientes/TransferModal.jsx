@@ -46,7 +46,7 @@ const TransferModal = ({ customer, onClose, onDone }) => {
             <div className="span-2 hint">Dirección anterior: {customer.address}{customer.neighborhood ? `, ${customer.neighborhood}` : ''}</div>
             <Field label="Nueva dirección" htmlFor="tra" required><input id="tra" value={form.address} onChange={set('address')} placeholder="Calle 45 # 12-30" /></Field>
             <Field label="Barrio" htmlFor="trn"><input id="trn" value={form.neighborhood} onChange={set('neighborhood')} /></Field>
-            <Field label="Ciudad" htmlFor="trc"><input id="trc" value={form.city} onChange={set('city')} /></Field>
+            <Field label="Ciudad" htmlFor="trc"><input id="trc" data-only="letters" value={form.city} onChange={set('city')} /></Field>
             <Field label="Ubicación en el mapa"><LocationButton lat={form.lat} lng={form.lng} onChange={({ lat, lng }) => setForm((f) => ({ ...f, lat, lng }))} /></Field>
             <div className="span-2"><Field label="Recibo de servicios de la nueva casa" required hint="Agua, luz o gas: comprueba la nueva dirección.">
               <PhotoInput doc value={form.utilityBillUrl} label="Recibo" placeholder={<MdReceiptLong size={34} />} onChange={set('utilityBillUrl')} />

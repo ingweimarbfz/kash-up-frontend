@@ -196,8 +196,8 @@ export const SiteForm = ({ initial, onClose, onSaved }) => {
       footer={<><button type="button" className="btn" onClick={onClose}>Cancelar</button><button type="submit" form="site-form" className="btn btn-primary" disabled={saving}>{saving && <Spinner />} Guardar</button></>}>
       <form id="site-form" className="form-grid" onSubmit={submit} noValidate>
         <div className="span-2"><Field label="Nombre de la sede" htmlFor="sn" required><input id="sn" value={f.name} onChange={set('name')} placeholder="Ej. Sede Norte, Punto Soledad" autoFocus /></Field></div>
-        <Field label="Ciudad" htmlFor="sc"><input id="sc" value={f.city || ''} onChange={set('city')} /></Field>
-        <Field label="Teléfono" htmlFor="sp"><input id="sp" value={f.phone || ''} onChange={set('phone')} inputMode="numeric" /></Field>
+        <Field label="Ciudad" htmlFor="sc"><input id="sc" data-only="letters" value={f.city || ''} onChange={set('city')} /></Field>
+        <Field label="Teléfono" htmlFor="sp"><input id="sp" minLength={7} maxLength={10} value={f.phone || ''} onChange={set('phone')} inputMode="numeric" /></Field>
         <div className="span-2"><Field label="Dirección" htmlFor="sa"><input id="sa" value={f.address || ''} onChange={set('address')} /></Field></div>
         <div className="span-2">
           <Field label="Capital de la sede" hint="Con capital aparte, las asignaciones, entregas y traslados de sus ruteros usan la caja de esta sede">
@@ -233,7 +233,7 @@ export const WarehouseForm = ({ initial, sites, onClose, onSaved }) => {
         <Field label="Sede" htmlFor="ws" required>
           <select id="ws" value={f.siteId} onChange={set('siteId')} disabled={initial?.isGeneral}><option value="">Selecciona la sede…</option>{(sites || []).filter((s) => s.active || s.id === Number(f.siteId)).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select>
         </Field>
-        <Field label="Responsable" htmlFor="wr"><input id="wr" value={f.responsible || ''} onChange={set('responsible')} /></Field>
+        <Field label="Responsable" htmlFor="wr"><input id="wr" data-only="letters" value={f.responsible || ''} onChange={set('responsible')} /></Field>
         <div className="span-2"><Field label="Ubicación" htmlFor="wl"><input id="wl" value={f.location || ''} onChange={set('location')} placeholder="Dirección, local, piso…" /></Field></div>
         <div className="span-2"><Field label="Descripción" htmlFor="wd"><input id="wd" value={f.description || ''} onChange={set('description')} placeholder="Qué se guarda aquí" /></Field></div>
         {editing && !initial.isGeneral && <label className="check span-2"><input type="checkbox" checked={f.active} onChange={set('active')} /> Bodega activa</label>}

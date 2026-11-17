@@ -61,7 +61,7 @@ const ChangeModal = ({ current, onClose, onSent }) => {
             ))}
           </div>
           <div className="form-grid">
-            <Field label="Teléfono de contacto" htmlFor="cp" hint="Si lo dejas vacío usamos el de tu usuario"><input id="cp" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} /></Field>
+            <Field label="Teléfono de contacto" htmlFor="cp" hint="Si lo dejas vacío usamos el de tu usuario"><input id="cp" inputMode="numeric" minLength={7} maxLength={10} value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} /></Field>
             <Field label="Mensaje" htmlFor="cm"><input id="cm" value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} placeholder="Ej. necesitamos 4 prestamistas más" /></Field>
           </div>
           {error && <div className="alert bad">{error}</div>}

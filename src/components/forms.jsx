@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { MdPhotoCamera, MdDelete, MdMyLocation, MdPictureAsPdf, MdReceipt, MdAttachFile } from 'react-icons/md'
+import { MdPhotoCamera, MdPhotoLibrary, MdDelete, MdMyLocation, MdPictureAsPdf, MdReceipt, MdAttachFile } from 'react-icons/md'
 import { fileToDataUrl } from '../utils/image'
 import { Spinner } from './ui'
 
@@ -15,10 +15,12 @@ export const MoneyInput = ({ value, onChange, id, placeholder = '0', ...rest }) 
   )
 }
 
-// Foto tomada con la cámara (en celular) o subida desde el equipo. Entrega { photo, thumb } en data URL.
+// Foto tomada con la cámara (en celular) o cargada desde la galería o el equipo (KU-031).
+// Entrega { photo, thumb } en data URL.
 // doc: formato de tarjeta (documento de identidad), con más resolución para que se lea.
 export const PhotoInput = ({ value, onChange, label = 'Tomar foto', round = true, capture = 'environment', withThumb = false, doc = false, placeholder = null }) => {
   const ref = useRef(null)
+  const gallery = useRef(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const pick = async (e) => {
@@ -34,15 +36,17 @@ export const PhotoInput = ({ value, onChange, label = 'Tomar foto', round = true
   }
   return (
     <div className={`photo-input${round && !doc ? ' round' : ''}${doc ? ' doc' : ''}`}>
-      <button type="button" className="photo-box" onClick={() => ref.current?.click()} aria-label={label}>
+      <button type="button" className="photo-box" onClick={() => gallery.current?.click()} aria-label={label}>
         {value ? <img src={value} alt="" /> : busy ? <Spinner /> : <>{placeholder || <MdPhotoCamera />}</>}
       </button>
       <div className="photo-actions">
-        <button type="button" className="btn btn-sm" onClick={() => ref.current?.click()}>{busy ? <Spinner /> : <MdPhotoCamera />} {value ? 'Cambiar' : label}</button>
+        <button type="button" className="btn btn-sm" onClick={() => ref.current?.click()} title="Tomar foto con la cámara">{busy ? <Spinner /> : <MdPhotoCamera />} {value ? 'Tomar otra' : label}</button>
+        <button type="button" className="btn btn-sm" onClick={() => gallery.current?.click()} title="Cargar una foto guardada"><MdPhotoLibrary /> Cargar</button>
         {value && <button type="button" className="btn btn-sm btn-ghost" onClick={() => onChange(withThumb ? { photo: null, thumb: null } : null)}><MdDelete /> Quitar</button>}
         {error && <small className="error">{error}</small>}
       </div>
       <input ref={ref} type="file" accept="image/*" capture={capture} hidden onChange={pick} />
+      <input ref={gallery} type="file" accept="image/*" hidden onChange={pick} />
     </div>
   )
 }

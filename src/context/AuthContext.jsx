@@ -23,14 +23,23 @@ export const AuthProvider = ({ children }) => {
     return () => window.removeEventListener('ku:unauthorized', logout)
   }, [logout])
 
-  const login = useCallback(async (username, password) => {
-    const { data } = await api.post('/login', { username, password })
+  // KU-031: si el usuario tiene varios perfiles y no eligió uno, devuelve { chooseProfile, profiles } sin iniciar sesión.
+  const login = useCallback(async (username, password, profile) => {
+    const { data } = await api.post('/login', { username, password, profile })
+    if (data.chooseProfile) return data
     tokenStore.set(data.token)
     setUser(data.user)
     return data.user
   }, [])
 
-  const value = useMemo(() => ({ user, loading, login, logout, setUser }), [user, loading, login, logout])
+  // Cambiar de perfil sin cerrar sesión: recarga la app en el inicio del nuevo perfil.
+  const switchProfile = useCallback(async (role) => {
+    const { data } = await api.post('/auth/perfil', { role })
+    tokenStore.set(data.token)
+    window.location.assign('/')
+  }, [])
+
+  const value = useMemo(() => ({ user, loading, login, logout, setUser, switchProfile }), [user, loading, login, logout, switchProfile])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

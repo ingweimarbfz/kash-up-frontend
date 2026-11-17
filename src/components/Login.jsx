@@ -1,11 +1,18 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { MdPerson, MdLock, MdVisibility, MdVisibilityOff, MdErrorOutline, MdRequestQuote, MdRoute, MdInventory2, MdInsights } from 'react-icons/md'
+import { MdPerson, MdLock, MdVisibility, MdVisibilityOff, MdErrorOutline, MdRequestQuote, MdRoute, MdInventory2, MdInsights, MdAdminPanelSettings, MdTwoWheeler, MdArrowBack, MdCheckCircle } from 'react-icons/md'
 import { useAuth } from '../context/AuthContext'
 import { errorMessage } from '../api/client'
 import { Spinner } from './ui'
 import { BrandLogo } from './Logo'
 import { BRAND, BRAND_TAGLINE } from '../utils/brand'
+
+// KU-031: perfiles con los que se puede entrar cuando un usuario tiene varios.
+const PROFILE_INFO = {
+  administrador: { icon: <MdAdminPanelSettings />, text: 'Configuración, usuarios, cartera y reportes del negocio' },
+  prestamista: { icon: <MdRoute />, text: 'Tu ruta, tus clientes, cobros y caja' },
+  conductor: { icon: <MdTwoWheeler />, text: 'Tu vehículo: kilometraje, tanqueos y mantenimientos' }
+}
 
 const Login = () => {
   const { login } = useAuth()
@@ -15,6 +22,7 @@ const Login = () => {
   const [showPass, setShowPass] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [choice, setChoice] = useState(null) // { profiles, name, picked }
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
@@ -22,12 +30,15 @@ const Login = () => {
     e.preventDefault()
     setError('')
     if (!form.username.trim() || !form.pass) { setError('Ingresa tu usuario y contraseña.'); return }
+    if (choice && !choice.picked) { setError('Elige con qué perfil quieres entrar.'); return }
     setLoading(true)
     try {
-      await login(form.username.trim(), form.pass)
-      navigate(location.state?.from?.pathname || '/', { replace: true })
+      const r = await login(form.username.trim(), form.pass, choice?.picked)
+      if (r?.chooseProfile) { setChoice({ profiles: r.profiles, name: r.name, picked: null }); return }
+      navigate(choice ? '/' : location.state?.from?.pathname || '/', { replace: true })
     } catch (err) {
       setError(errorMessage(err, 'No se pudo iniciar sesión.'))
+      setChoice(null)
       setForm((f) => ({ ...f, pass: '' }))
     } finally {
       setLoading(false)
@@ -55,32 +66,52 @@ const Login = () => {
       <section className="login-panel">
         <form className="login-card" onSubmit={handleSubmit} noValidate>
           <div className="login-brand"><BrandLogo size={38} /></div>
-          <h1>Iniciar sesión</h1>
-          <p>Ingresa con el usuario que te asignó el administrador.</p>
+          {choice ? (
+            <>
+              <h1>Hola, {choice.name}</h1>
+              <p>Tienes varios perfiles. Elige con cuál quieres entrar.</p>
+              <div className="profile-pick" role="radiogroup" aria-label="Perfil">
+                {choice.profiles.map((p) => (
+                  <label key={p.role} className={`profile-opt${choice.picked === p.role ? ' on' : ''}`}>
+                    <input type="radio" name="profile" value={p.role} checked={choice.picked === p.role} onChange={() => { setChoice({ ...choice, picked: p.role }); setError('') }} />
+                    <span className="profile-ico">{PROFILE_INFO[p.role]?.icon}</span>
+                    <span className="profile-txt"><b>{p.label}</b><small>{PROFILE_INFO[p.role]?.text}</small></span>
+                    {choice.picked === p.role && <MdCheckCircle className="profile-check" />}
+                  </label>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+            <h1>Iniciar sesión</h1>
+            <p>Ingresa con el usuario que te asignó el administrador.</p>
 
-          <div className="field">
-            <label htmlFor="username">Usuario</label>
-            <div className="input-icon">
-              <MdPerson />
-              <input id="username" name="username" autoComplete="username" autoFocus autoCapitalize="none" value={form.username} onChange={handleChange} placeholder="tu.usuario" />
+            <div className="field">
+              <label htmlFor="username">Usuario</label>
+              <div className="input-icon">
+                <MdPerson />
+                <input id="username" name="username" autoComplete="username" autoFocus autoCapitalize="none" value={form.username} onChange={handleChange} placeholder="tu.usuario" />
+              </div>
             </div>
-          </div>
-          <div className="field">
-            <label htmlFor="pass">Contraseña</label>
-            <div className="input-icon">
-              <MdLock />
-              <input id="pass" name="pass" type={showPass ? 'text' : 'password'} autoComplete="current-password" value={form.pass} onChange={handleChange} placeholder="••••••••" />
-              <button type="button" className="btn btn-ghost btn-icon addon" onClick={() => setShowPass((s) => !s)} aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
-                {showPass ? <MdVisibilityOff /> : <MdVisibility />}
-              </button>
+            <div className="field">
+              <label htmlFor="pass">Contraseña</label>
+              <div className="input-icon">
+                <MdLock />
+                <input id="pass" name="pass" type={showPass ? 'text' : 'password'} autoComplete="current-password" value={form.pass} onChange={handleChange} placeholder="••••••••" />
+                <button type="button" className="btn btn-ghost btn-icon addon" onClick={() => setShowPass((s) => !s)} aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                  {showPass ? <MdVisibilityOff /> : <MdVisibility />}
+                </button>
+              </div>
             </div>
-          </div>
+            </>
+          )}
 
           {error && <div className="alert bad" role="alert"><MdErrorOutline /> <span>{error}</span></div>}
 
           <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-            {loading ? <><Spinner /> Ingresando…</> : 'Ingresar'}
+            {loading ? <><Spinner /> Ingresando…</> : choice ? 'Entrar' : 'Ingresar'}
           </button>
+          {choice && <button type="button" className="btn btn-ghost btn-block" onClick={() => { setChoice(null); setError(''); setForm((f) => ({ ...f, pass: '' })) }}><MdArrowBack /> Usar otro usuario</button>}
         </form>
       </section>
     </div>

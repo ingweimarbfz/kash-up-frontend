@@ -269,11 +269,11 @@ const OrgForm = ({ initial, cat, plans, onClose, onSaved }) => {
       <div className="stack">
         <div className="form-grid">
           <Field label="Nombre del negocio" required htmlFor="on"><input id="on" value={f.name} onChange={(e) => set('name', e.target.value)} /></Field>
-          <Field label="NIT / RUC / documento fiscal" htmlFor="oi"><input id="oi" value={f.nit || ''} onChange={(e) => set('nit', e.target.value)} /></Field>
+          <Field label="NIT / RUC / documento fiscal" htmlFor="oi"><input id="oi" data-only="nit" maxLength={15} value={f.nit || ''} onChange={(e) => set('nit', e.target.value)} /></Field>
           <Field label="País" required htmlFor="oc" hint={country ? `Moneda ${country.currency} (${country.currencyName}) · ${country.phonePrefix}` : null}><CountrySelect id="oc" countries={cat.countries.filter((c) => c.active || c.code === f.countryCode)} value={f.countryCode} onChange={(v) => set('countryCode', v)} /></Field>
-          <Field label="Ciudad" htmlFor="ocity"><input id="ocity" value={f.city || ''} onChange={(e) => set('city', e.target.value)} /></Field>
-          <Field label="Contacto" htmlFor="ocn"><input id="ocn" value={f.contactName || ''} onChange={(e) => set('contactName', e.target.value)} /></Field>
-          <Field label="Teléfono" htmlFor="op"><input id="op" value={f.phone || ''} onChange={(e) => set('phone', e.target.value)} /></Field>
+          <Field label="Ciudad" htmlFor="ocity"><input id="ocity" data-only="letters" value={f.city || ''} onChange={(e) => set('city', e.target.value)} /></Field>
+          <Field label="Contacto" htmlFor="ocn"><input id="ocn" data-only="letters" value={f.contactName || ''} onChange={(e) => set('contactName', e.target.value)} /></Field>
+          <Field label="Teléfono" htmlFor="op"><input id="op" inputMode="numeric" minLength={7} maxLength={10} value={f.phone || ''} onChange={(e) => set('phone', e.target.value)} /></Field>
           <Field label="Correo" htmlFor="oe"><input id="oe" type="email" value={f.email || ''} onChange={(e) => set('email', e.target.value)} /></Field>
           <Field label="Dirección" htmlFor="oa"><input id="oa" value={f.address || ''} onChange={(e) => set('address', e.target.value)} /></Field>
         </div>
@@ -306,12 +306,12 @@ const OrgForm = ({ initial, cat, plans, onClose, onSaved }) => {
             <h4>Primer administrador</h4>
             <small className="hint">Entra a la app con su usuario y su número de documento como contraseña; después la puede cambiar.</small>
             <div className="form-grid">
-              <Field label="Documento" required htmlFor="ai"><input id="ai" value={f.admin.identification} onChange={(e) => setA('identification', e.target.value)} /></Field>
+              <Field label="Documento" required htmlFor="ai"><input id="ai" inputMode="numeric" minLength={5} maxLength={15} value={f.admin.identification} onChange={(e) => setA('identification', e.target.value)} /></Field>
               <Field label="Usuario" required htmlFor="au"><input id="au" value={f.admin.username} onChange={(e) => setA('username', e.target.value.toLowerCase())} placeholder="nombre.apellido" /></Field>
-              <Field label="Nombres" required htmlFor="an"><input id="an" value={f.admin.name} onChange={(e) => setA('name', e.target.value)} /></Field>
-              <Field label="Apellidos" htmlFor="al"><input id="al" value={f.admin.lastName} onChange={(e) => setA('lastName', e.target.value)} /></Field>
+              <Field label="Nombres" required htmlFor="an"><input id="an" data-only="letters" value={f.admin.name} onChange={(e) => setA('name', e.target.value)} /></Field>
+              <Field label="Apellidos" htmlFor="al"><input id="al" data-only="letters" value={f.admin.lastName} onChange={(e) => setA('lastName', e.target.value)} /></Field>
               <Field label="Correo" htmlFor="ae"><input id="ae" type="email" value={f.admin.email} onChange={(e) => setA('email', e.target.value)} /></Field>
-              <Field label="Teléfono" htmlFor="ap"><input id="ap" value={f.admin.phone} onChange={(e) => setA('phone', e.target.value)} /></Field>
+              <Field label="Teléfono" htmlFor="ap"><input id="ap" inputMode="numeric" minLength={7} maxLength={10} value={f.admin.phone} onChange={(e) => setA('phone', e.target.value)} /></Field>
             </div>
           </div>
         )}
@@ -483,7 +483,7 @@ export const CountriesPage = () => {
           footer={<><button type="button" className="btn" onClick={() => setEdit(null)}>Cancelar</button><button type="button" className="btn btn-primary" onClick={() => save(edit.code, { currency: edit.currency.toUpperCase(), currencyName: edit.currencyName }, 'Moneda actualizada')}>Guardar</button></>}>
           <div className="stack">
             <div className="form-grid">
-              <Field label="Código ISO" htmlFor="cc" hint="3 letras: COP, USD, VES…"><input id="cc" maxLength={3} value={edit.currency} onChange={(e) => setEdit({ ...edit, currency: e.target.value.toUpperCase() })} /></Field>
+              <Field label="Código ISO" htmlFor="cc" hint="3 letras: COP, USD, VES…"><input id="cc" data-only="letters" maxLength={3} value={edit.currency} onChange={(e) => setEdit({ ...edit, currency: e.target.value.toUpperCase() })} /></Field>
               <Field label="Nombre" htmlFor="cn"><input id="cn" value={edit.currencyName} onChange={(e) => setEdit({ ...edit, currencyName: e.target.value })} /></Field>
             </div>
             <div className="alert warn">Los precios de los planes en {edit.name} quedan en la nueva moneda con el mismo número: revísalos en Planes.</div>
