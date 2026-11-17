@@ -86,7 +86,7 @@ small { color: var(--muted); }
 
 @media (max-width: 1024px) {
   .sidebar { transform: translateX(-100%); visibility: hidden; transition: transform .2s ease, visibility .2s; }
-  .sidebar.open { transform: none; visibility: visible; box-shadow: var(--shadow-lg); }
+  .sidebar.open, .app.sidebar-off .sidebar.open { transform: none; visibility: visible; box-shadow: var(--shadow-lg); }
   .main, .app.sidebar-off .main { margin-left: 0; }
   .backdrop.show { display: block; position: fixed; inset: 0; background: rgba(10, 10, 11, .45); z-index: 35; }
   .topbar { padding: 0 14px; }
@@ -866,3 +866,13 @@ small.visit-note { color: var(--ink-2) !important; display: flex !important; ali
   .country-select { min-width: 0; }
   .plt-country > small { display: none; }
 }
+
+/* ---------- KU-027 · Comprobante de transferencia ---------- */
+.receipt-input { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px dashed var(--gray-300); border-radius: var(--radius-sm); background: var(--gray-100); }
+.receipt-input.missing { border-color: var(--warn); background: var(--warn-50); }
+.receipt-input img, .receipt-proof img { max-height: 220px; width: auto; max-width: 100%; align-self: flex-start; border-radius: 8px; border: 1px solid var(--line); object-fit: contain; background: var(--white); }
+.receipt-empty, .receipt-file { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 13px; }
+.receipt-empty svg, .receipt-file svg { font-size: 22px; color: var(--muted); flex-shrink: 0; }
+.receipt-input .photo-actions { display: flex; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 8px; }
+.receipt-proof { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+.muted-icon { vertical-align: -3px; margin-left: 5px; color: var(--muted); }

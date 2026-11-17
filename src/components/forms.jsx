@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { MdPhotoCamera, MdDelete, MdMyLocation } from 'react-icons/md'
+import { MdPhotoCamera, MdDelete, MdMyLocation, MdPictureAsPdf, MdReceipt, MdAttachFile } from 'react-icons/md'
 import { fileToDataUrl } from '../utils/image'
 import { Spinner } from './ui'
 
@@ -84,3 +84,47 @@ export const DocIcon = ({ side = 'front' }) => (
     {side === 'front' ? (<><circle cx="18" cy="17" r="6" /><path d="M9 32c2-5 16-5 18 0" /><path d="M34 13h20M34 20h20M34 27h12" /></>) : (<><path d="M8 10h48" strokeWidth="5" /><path d="M10 22h30M10 29h22" /><rect x="44" y="20" width="12" height="12" rx="2" /></>)}
   </svg>
 )
+
+// KU-027: comprobante de pago. Foto con la cámara o archivo (imagen o PDF de hasta 3 MB).
+const readRaw = (file) => new Promise((resolve, reject) => {
+  const r = new FileReader()
+  r.onload = () => resolve(r.result)
+  r.onerror = () => reject(new Error('No se pudo leer el archivo'))
+  r.readAsDataURL(file)
+})
+export const ReceiptInput = ({ value, onChange, required = false }) => {
+  const cam = useRef(null)
+  const file = useRef(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const pick = async (e) => {
+    const f = e.target.files?.[0]
+    e.target.value = ''
+    if (!f) return
+    setBusy(true); setError('')
+    try {
+      if (f.type === 'application/pdf') {
+        if (f.size > 3 * 1024 * 1024) throw new Error('El PDF supera 3 MB')
+        onChange(await readRaw(f))
+      } else {
+        onChange(await fileToDataUrl(f, { max: 1400, quality: 0.8 }))
+      }
+    } catch (err) { setError(err.message) } finally { setBusy(false) }
+  }
+  const pdf = typeof value === 'string' && value.startsWith('data:application/pdf')
+  return (
+    <div className={`receipt-input${required && !value ? ' missing' : ''}`}>
+      {value
+        ? (pdf ? <div className="receipt-file"><MdPictureAsPdf /> Comprobante en PDF</div> : <img src={value} alt="Comprobante" />)
+        : <div className="receipt-empty">{busy ? <Spinner /> : <MdReceipt />}<span>{required ? 'Adjunta la foto del comprobante de la transferencia' : 'Comprobante (opcional)'}</span></div>}
+      <div className="photo-actions">
+        <button type="button" className="btn btn-sm" onClick={() => cam.current?.click()} disabled={busy}><MdPhotoCamera /> Tomar foto</button>
+        <button type="button" className="btn btn-sm" onClick={() => file.current?.click()} disabled={busy}><MdAttachFile /> Adjuntar archivo</button>
+        {value && <button type="button" className="btn btn-sm btn-ghost" onClick={() => onChange(null)}><MdDelete /> Quitar</button>}
+      </div>
+      {error && <small className="error">{error}</small>}
+      <input ref={cam} type="file" accept="image/*" capture="environment" hidden onChange={pick} />
+      <input ref={file} type="file" accept="image/*,application/pdf" hidden onChange={pick} />
+    </div>
+  )
+}
