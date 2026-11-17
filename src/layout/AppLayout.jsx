@@ -4,6 +4,7 @@ import { MdMenu, MdChevronRight, MdLogout, MdPerson, MdKeyboardArrowDown, MdSear
 import api, { getSiteFilter, setSiteFilter } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useSettings } from '../context/SettingsContext'
+import { usePlan } from '../context/PlanContext'
 import { navFor, titleFor, ACCOUNT_NAV, ROLE_LABELS } from '../utils/nav'
 import { Avatar } from '../components/ui'
 import { KashLogo } from '../components/Logo'
@@ -93,7 +94,8 @@ const AppLayout = () => {
     ? <SiteSelector value={site} onChange={changeSite} />
     : user.site && user.role === 'prestamista' && <span className="site-chip" title="Tu sede"><MdPlace /> {user.site.name}</span>
 
-  const sections = navFor(user.role)
+  const { has } = usePlan()
+  const sections = navFor(user.role, has)
   const { section, title } = titleFor(user.role, pathname)
 
   return (
