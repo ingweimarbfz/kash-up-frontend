@@ -12,7 +12,7 @@ const LIMITS = [
 ]
 const GROUPS = { cartera: 'Cartera', productos: 'Productos', cobro: 'Cobro en calle', flota: 'Flota', control: 'Control', clientes: 'Clientes' }
 const STATUS = { activa: ['Activo', 'brand'], prueba: ['En prueba', 'warn'], suspendida: ['Suspendido', 'bad'], cancelada: ['Cancelado', 'muted'] }
-const REQ = { pendiente: ['Pendiente', 'warn'], contactado: ['KashUp te contactó', 'dark'], aplicada: ['Aplicada', 'brand'], rechazada: ['No aplicada', 'muted'] }
+const REQ = { pendiente: ['Pendiente', 'warn'], contactado: ['QuontUp360 te contactó', 'dark'], aplicada: ['Aplicada', 'brand'], rechazada: ['No aplicada', 'muted'] }
 
 const Meter = ({ label, used, max }) => {
   const unlimited = max === null || max === undefined
@@ -27,7 +27,7 @@ const Meter = ({ label, used, max }) => {
   )
 }
 
-// Cambiar de plan: el administrador elige y KashUp aplica el cambio.
+// Cambiar de plan: el administrador elige y QuontUp360 aplica el cambio.
 const ChangeModal = ({ current, onClose, onSent }) => {
   const [opts, setOpts] = useState(null)
   const [f, setF] = useState({ planId: '', billingCycle: 'mensual', message: '', phone: '' })
@@ -111,7 +111,7 @@ const MyPlanPage = () => {
               <div className="row-between"><strong>{d.lastRequest.toPlan} · {d.lastRequest.billingCycle}</strong><Badge tone={REQ[d.lastRequest.status][1]}>{REQ[d.lastRequest.status][0]}</Badge></div>
               <small>Enviada {formatDateTime(d.lastRequest.createdAt)}</small>
               {d.lastRequest.response && <div className="alert">{d.lastRequest.response}</div>}
-              {open && <small className="hint">KashUp te contactará para confirmar el cambio.</small>}
+              {open && <small className="hint">QuontUp360 te contactará para confirmar el cambio.</small>}
             </div>
           )}
         </Card>
@@ -139,7 +139,7 @@ const MyPlanPage = () => {
           })}
         </div>
       </Card>
-      {changing && <ChangeModal current={d.org} onClose={() => setChanging(false)} onSent={() => { setChanging(false); load(); refresh(); toast('Solicitud enviada. KashUp te contactará pronto.') }} />}
+      {changing && <ChangeModal current={d.org} onClose={() => setChanging(false)} onSent={() => { setChanging(false); load(); refresh(); toast('Solicitud enviada. QuontUp360 te contactará pronto.') }} />}
       {toastNode}
     </div>
   )

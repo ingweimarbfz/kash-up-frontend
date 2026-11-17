@@ -4,7 +4,7 @@ import api, { errorMessage } from '../api/client'
 import { useSettings } from '../context/SettingsContext'
 import { Card, Field, PageHead, Spinner, useToast } from '../components/ui'
 import { fileToDataUrl } from '../utils/image'
-import { KashLogo } from '../components/Logo'
+import { BrandLogo } from '../components/Logo'
 
 const SettingsPage = () => {
   const { settings, setSettings } = useSettings()
@@ -54,7 +54,7 @@ const SettingsPage = () => {
         </Card>
         <Card title="Logo" subtitle="Se muestra en el menú lateral sobre fondo negro. PNG con fondo transparente.">
           <div className="logo-preview">
-            {form.logoUrl ? <img src={form.logoUrl} alt="Logo del negocio" /> : <KashLogo size={30} onDark />}
+            {form.logoUrl ? <img src={form.logoUrl} alt="Logo del negocio" /> : <BrandLogo size={30} onDark />}
           </div>
           <div className="row-actions">
             <label className="btn"><MdUpload /> Subir logo<input type="file" accept="image/*" hidden onChange={onLogo} /></label>

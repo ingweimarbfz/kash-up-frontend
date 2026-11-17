@@ -1,0 +1,14 @@
+{
+  "name": "QuontUp360",
+  "short_name": "QuontUp360",
+  "description": "Cobros, préstamos y crédito de productos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0B",
+  "theme_color": "#0A0A0B",
+  "icons": [
+    { "src": "/app-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/app-icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/app-icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

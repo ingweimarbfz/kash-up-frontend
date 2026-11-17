@@ -35,7 +35,7 @@ export const SummaryPage = () => {
   const localeOf = (cur) => cat.countries.find((c) => c.currency === cur)?.locale || 'es-CO'
   return (
     <div className="stack">
-      <PageHead title="Resumen de la plataforma" subtitle="Negocios que usan KashUp, ingreso mensual por moneda y renovaciones próximas." />
+      <PageHead title="Resumen de la plataforma" subtitle="Negocios que usan QuontUp360, ingreso mensual por moneda y renovaciones próximas." />
       <div className="grid grid-kpi">
         <Kpi label="Negocios activos" value={d.byStatus.activa || 0} icon={MdStorefront} tone="brand" note={`${d.organizations} en total`} />
         <Kpi label="En prueba" value={d.byStatus.prueba || 0} icon={MdHourglassTop} note="Aún no pagan" />
@@ -459,7 +459,7 @@ export const CountriesPage = () => {
   }
   return (
     <div className="stack">
-      <PageHead title="Países y monedas" subtitle="Dónde se ofrece KashUp. Cada país tiene su moneda: los precios de los planes y los valores de la app se muestran en ella." />
+      <PageHead title="Países y monedas" subtitle="Dónde se ofrece QuontUp360. Cada país tiene su moneda: los precios de los planes y los valores de la app se muestran en ella." />
       <Card flush>
         <div className="table-wrap"><table className="table">
           <thead><tr><th>País</th><th>Moneda</th><th>Formato</th><th>Zona horaria</th><th>Indicativo</th><th>Estado</th><th /></tr></thead>

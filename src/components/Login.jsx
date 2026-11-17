@@ -4,7 +4,7 @@ import { MdPerson, MdLock, MdVisibility, MdVisibilityOff, MdErrorOutline, MdRequ
 import { useAuth } from '../context/AuthContext'
 import { errorMessage } from '../api/client'
 import { Spinner } from './ui'
-import { KashLogo } from './Logo'
+import { BrandLogo } from './Logo'
 import { BRAND, BRAND_TAGLINE } from '../utils/brand'
 
 const Login = () => {
@@ -37,7 +37,7 @@ const Login = () => {
   return (
     <div className="login">
       <section className="login-hero">
-        <KashLogo size={40} onDark />
+        <BrandLogo size={40} onDark />
         <div>
           <span className="login-tag">{BRAND_TAGLINE}</span>
           <h2>Tu cartera bajo control, cuota a cuota.</h2>
@@ -54,7 +54,7 @@ const Login = () => {
 
       <section className="login-panel">
         <form className="login-card" onSubmit={handleSubmit} noValidate>
-          <div className="login-brand"><KashLogo size={38} /></div>
+          <div className="login-brand"><BrandLogo size={38} /></div>
           <h1>Iniciar sesión</h1>
           <p>Ingresa con el usuario que te asignó el administrador.</p>
 

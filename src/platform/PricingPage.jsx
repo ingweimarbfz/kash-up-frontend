@@ -4,7 +4,7 @@ import {
   MdBarChart, MdMenuBook, MdNotificationsActive, MdPhoneIphone, MdCloudDone, MdShield, MdPublic, MdLocationOn, MdTrendingUp
 } from 'react-icons/md'
 import api from '../api/client'
-import { KashLogo } from '../components/Logo'
+import { BrandLogo } from '../components/Logo'
 import { Spinner } from '../components/ui'
 import { CountrySelect, Flag, limitText, moneyIn } from '../utils/countries'
 import './pricing.css'
@@ -63,7 +63,7 @@ const PricingPage = () => {
     try { localStorage.setItem('ku_pais', code) } catch { /* sin almacenamiento */ }
     const url = new URL(window.location.href); url.searchParams.set('pais', code); window.history.replaceState(null, '', url)
   }, [code])
-  useEffect(() => { const t = document.title; document.title = 'Planes y precios · KashUp'; return () => { document.title = t } }, [])
+  useEffect(() => { const t = document.title; document.title = 'Planes y precios · QuontUp360'; return () => { document.title = t } }, [])
   const groups = useMemo(() => (d ? Object.entries(GROUPS).map(([g, l]) => [g, l, d.features.filter((f) => f.group === g)]).filter(([, , fs]) => fs.length) : []), [d])
   if (!d) return <div className="pr pr-loading"><Spinner /></div>
   const c = d.country
@@ -77,7 +77,7 @@ const PricingPage = () => {
     <div className="pr">
       <header className="pr-nav">
         <div className="pr-wrap pr-nav-in">
-          <KashLogo size={30} onDark />
+          <BrandLogo size={30} onDark />
           <nav><a href="#modulos">Módulos</a><a href="#planes">Planes</a><a href="#comparar">Comparar</a></nav>
           <div className="pr-nav-right">
             <CountrySelect countries={d.countries} value={c?.code} onChange={setCode} dark />
@@ -94,7 +94,7 @@ const PricingPage = () => {
             <p className="pr-lead">Créditos en efectivo y de productos, rutas de cobro, cajas de cada prestamista y reportes en un solo lugar. Desde el computador o el celular, en {c?.name || 'tu país'} y en {c?.currency || 'tu moneda'}.</p>
             <div className="pr-ctas">
               <a className="pr-cta" href="#planes">Ver planes en {c?.currency} <MdArrowForward /></a>
-              <a className="pr-ghost" href={contactLink(`Quiero una demostración de KashUp (${c?.name || ''})`)} target="_blank" rel="noreferrer">Solicitar una demostración</a>
+              <a className="pr-ghost" href={contactLink(`Quiero una demostración de QuontUp360 (${c?.name || ''})`)} target="_blank" rel="noreferrer">Solicitar una demostración</a>
             </div>
             <div className="pr-why">{WHY.map(([I, t]) => <span key={t}><I /> {t}</span>)}</div>
           </div>
@@ -126,7 +126,7 @@ const PricingPage = () => {
                   <p className="tag">{p.tagline}</p>
                   <div className="amount">{fmt(price(p))}<small>/mes</small></div>
                   <div className="note">{cycle === 'anual' ? `Pago anual de ${fmt(p.priceYear)}` : 'Pago mensual'} · {p.currency}{p.trialDays ? ` · ${p.trialDays} días de prueba` : ''}</div>
-                  <a className="cta" href={contactLink(`Quiero el plan ${p.name} (${cycle}) de KashUp en ${c?.name}`)} target="_blank" rel="noreferrer">Elegir {p.name} <MdArrowForward /></a>
+                  <a className="cta" href={contactLink(`Quiero el plan ${p.name} (${cycle}) de QuontUp360 en ${c?.name}`)} target="_blank" rel="noreferrer">Elegir {p.name} <MdArrowForward /></a>
                   <hr />
                   <ul>{p.bullets.map((b) => <li key={b}><MdCheck /> {b}</li>)}</ul>
                   <div className="foot">Soporte: {p.support || 'WhatsApp'}</div>
@@ -158,7 +158,7 @@ const PricingPage = () => {
         )}
 
         <section className="pr-countries">
-          <h3><MdNotificationsActive /> KashUp en Latinoamérica</h3>
+          <h3><MdNotificationsActive /> QuontUp360 en Latinoamérica</h3>
           <div className="pr-flag-list">
             {d.countries.map((x) => (
               <button key={x.code} type="button" className={x.code === c?.code ? 'on' : ''} onClick={() => { setCode(x.code); document.getElementById('planes')?.scrollIntoView({ behavior: 'smooth' }) }}>
@@ -167,7 +167,7 @@ const PricingPage = () => {
             ))}
           </div>
         </section>
-        <p className="pr-legal">Precios en {c?.currencyName} ({c?.currency}) para negocios en {c?.name}. Impuestos según la ley de cada país. © {new Date().getFullYear()} KashUp.</p>
+        <p className="pr-legal">Precios en {c?.currencyName} ({c?.currency}) para negocios en {c?.name}. Impuestos según la ley de cada país. © {new Date().getFullYear()} QuontUp360.</p>
       </div>
     </div>
   )

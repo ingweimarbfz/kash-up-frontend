@@ -1,4 +1,4 @@
-/* Página pública de planes (KU-026): fondo negro, acento esmeralda como el resto de KashUp. */
+/* Página pública de planes (KU-026): fondo negro, acento esmeralda como el resto de QuontUp360. */
 .pr { min-height: 100vh; background: radial-gradient(1200px 600px at 85% -10%, rgba(16, 185, 129, .18), transparent 60%), var(--black); color: var(--gray-300); font-family: var(--font); }
 .pr-loading { display: grid; place-items: center; }
 .pr-wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }

@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import api from '../api/client'
 import { useAuth } from './AuthContext'
 
-const DEFAULTS = { businessName: 'KashUp', shortName: null, logoUrl: null, currency: 'COP' }
+const DEFAULTS = { businessName: 'QuontUp360', shortName: null, logoUrl: null, currency: 'COP' }
 const SettingsContext = createContext({ settings: DEFAULTS, refresh: () => {} })
 
 // Configuración del negocio (nombre, logo). Se carga cuando hay sesión.

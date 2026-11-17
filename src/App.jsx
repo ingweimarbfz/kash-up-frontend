@@ -82,7 +82,7 @@ const App = () => (
       <SettingsProvider>
         <Suspense fallback={<Splash />}>
           <Routes>
-            {/* KU-026: sitio de planes para clientes y plataforma de KashUp (sesión propia). */}
+            {/* KU-026: sitio de planes para clientes y plataforma de QuontUp360 (sesión propia). */}
             <Route path="/precios" element={<PricingPage />} />
             <Route path="/plataforma/*" element={<PlatformApp />} />
             <Route path="/login" element={<LoginRoute />} />
