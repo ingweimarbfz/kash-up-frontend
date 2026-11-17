@@ -139,7 +139,7 @@ export const DriverForm = ({ driver, onClose, onSaved }) => {
         </div>
         <h4 className="form-section">Licencia de conducción</h4>
         <div className="form-grid">
-          {input('licenseNumber', 'Número de licencia', { req: true })}
+          {input('licenseNumber', 'Número de licencia', { req: true, 'data-only': 'alnum', autoCapitalize: 'characters', minLength: 3, maxLength: 20 })}
           <Field label="Categoría" htmlFor="d-cat" required><select id="d-cat" value={form.licenseCategory} onChange={set('licenseCategory')}>{LICENSE_CATS.map((c) => <option key={c} value={c}>{c}{c.startsWith('A') ? ' · motos' : c.startsWith('B') ? ' · carros particulares' : ' · servicio público'}</option>)}</select></Field>
           {input('licenseExpires', 'Vence', { req: true, type: 'date' })}
           {driver && <label className="check"><input type="checkbox" checked={form.active} onChange={set('active')} /> Activo</label>}

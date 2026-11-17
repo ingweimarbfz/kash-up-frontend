@@ -6,7 +6,7 @@ import { DocIcon, PhotoInput } from '../components/forms'
 import { ROLE_LABELS } from '../utils/nav'
 import { formatDateTime } from '../utils/format'
 import { LICENSE_CATS } from './vehiculos/common'
-import { formErrors } from '../utils/validate'
+import { formErrors, LICENSE_RE } from '../utils/validate'
 
 const EMPTY_DRIVER = { licenseNumber: '', licenseCategory: 'A2', licenseExpires: '', licensePhotoUrl: null }
 const EMPTY = { identification: '', name: '', lastName: '', username: '', email: '', phone: '', kind: 'operativo', lender: true, driver: false, password: '', resetPassword: false, active: true, siteId: '', photoUrl: null, avatarUrl: null, idPhotoUrl: null, idPhotoBackUrl: null, lic: EMPTY_DRIVER }
@@ -48,6 +48,7 @@ const UserForm = ({ initial, onClose, onSaved }) => {
     const errs = formErrors({ identification: ['doc', form.identification, true], name: ['name', form.name, true], lastName: ['name', form.lastName], username: ['username', form.username, true], phone: ['phone', form.phone, form.driver], email: ['email', form.email] })
     if (form.kind === 'operativo' && !form.lender && !form.driver) errs.unshift('Marca si será prestamista, conductor o ambos.')
     if (form.driver && (!form.lic.licenseNumber || !form.lic.licenseExpires)) errs.push('Completa el número y el vencimiento de la licencia de conducción.')
+    else if (form.driver && !LICENSE_RE.test(form.lic.licenseNumber)) errs.push('El número de licencia solo admite letras y números (3 a 20), sin espacios ni caracteres especiales.')
     if (!isClient && (!form.photoUrl || !form.idPhotoUrl || !form.idPhotoBackUrl)) errs.push('Toma o carga la foto de la persona y la de su documento por ambas caras.')
     if (errs.length) return setError(errs.join(' '))
     setSaving(true)
@@ -113,7 +114,7 @@ const UserForm = ({ initial, onClose, onSaved }) => {
           <div className="span-2 lic-box">
             <h4><MdTwoWheeler /> Licencia de conducción</h4>
             <div className="form-grid">
-              <Field label="Número de licencia" htmlFor="lic-n" required><input id="lic-n" value={form.lic.licenseNumber || ''} onChange={setLic('licenseNumber')} inputMode="numeric" data-only="digits" maxLength={15} /></Field>
+              <Field label="Número de licencia" htmlFor="lic-n" required><input id="lic-n" value={form.lic.licenseNumber || ''} onChange={setLic('licenseNumber')} data-only="alnum" autoCapitalize="characters" minLength={3} maxLength={20} /></Field>
               <Field label="Categoría" htmlFor="lic-c" required><select id="lic-c" value={form.lic.licenseCategory} onChange={setLic('licenseCategory')}>{LICENSE_CATS.map((c) => <option key={c} value={c}>{c}{c.startsWith('A') ? ' · motos' : c.startsWith('B') ? ' · carros particulares' : ' · servicio público'}</option>)}</select></Field>
               <Field label="Vence" htmlFor="lic-v" required><input id="lic-v" type="date" value={form.lic.licenseExpires || ''} onChange={setLic('licenseExpires')} /></Field>
               <Field label="Foto de la licencia"><PhotoInput doc value={form.lic.licensePhotoUrl} onChange={setLic('licensePhotoUrl')} label="Tomar foto" /></Field>
