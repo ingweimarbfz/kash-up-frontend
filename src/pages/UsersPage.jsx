@@ -7,9 +7,11 @@ import { ROLE_LABELS } from '../utils/nav'
 import { formatDateTime } from '../utils/format'
 import { LICENSE_CATS } from './vehiculos/common'
 import { formErrors, LICENSE_RE } from '../utils/validate'
+import { DocTypeSelect } from '../utils/docTypes'
+import { phoneProps } from '../utils/phones'
 
 const EMPTY_DRIVER = { licenseNumber: '', licenseCategory: 'A2', licenseExpires: '', licensePhotoUrl: null }
-const EMPTY = { identification: '', name: '', lastName: '', username: '', email: '', phone: '', kind: 'operativo', lender: true, driver: false, password: '', resetPassword: false, active: true, siteId: '', photoUrl: null, avatarUrl: null, idPhotoUrl: null, idPhotoBackUrl: null, lic: EMPTY_DRIVER }
+const EMPTY = { docType: '', identification: '', name: '', lastName: '', username: '', email: '', phone: '', kind: 'operativo', lender: true, driver: false, password: '', resetPassword: false, active: true, siteId: '', photoUrl: null, avatarUrl: null, idPhotoUrl: null, idPhotoBackUrl: null, lic: EMPTY_DRIVER }
 const ROLE_TONE = { administrador: 'dark', prestamista: 'brand', cliente: '', conductor: 'warn' }
 
 // KU-031: tipo de usuario del formulario y perfiles con los que puede entrar.
@@ -91,8 +93,9 @@ const UserForm = ({ initial, onClose, onSaved }) => {
             {profilesOf(form).length > 1 && <small className="hint">Entra con el mismo usuario y contraseña, y al iniciar sesión elige el perfil.</small>}
           </div>
         )}
-        <Field label="Identificación" htmlFor="identification" required>
-          <input id="identification" minLength={5} maxLength={15} value={form.identification} onChange={set('identification')} inputMode="numeric" placeholder="1065123456" />
+        <Field label="Tipo de documento" htmlFor="docType"><DocTypeSelect id="docType" value={form.docType} onChange={(v) => setForm((f) => ({ ...f, docType: v }))} /></Field>
+        <Field label="Número de documento" htmlFor="identification" required>
+          <input id="identification" minLength={5} maxLength={15} value={form.identification} onChange={set('identification')} inputMode="numeric" />
         </Field>
         <Field label="Nombres" htmlFor="name" required><input id="name" data-only="letters" value={form.name} onChange={set('name')} /></Field>
         <Field label="Apellidos" htmlFor="lastName"><input id="lastName" data-only="letters" value={form.lastName} onChange={set('lastName')} /></Field>
@@ -108,7 +111,7 @@ const UserForm = ({ initial, onClose, onSaved }) => {
             <input id="password" type="password" value={form.password} onChange={set('password')} autoComplete="new-password" disabled={form.resetPassword} />
           </Field>
         )}
-        <Field label="Celular" htmlFor="phone" required={form.driver}><input id="phone" minLength={7} value={form.phone || ''} onChange={set('phone')} inputMode="numeric" maxLength={10} placeholder="3001234567" /></Field>
+        <Field label="Celular" htmlFor="phone" required={form.driver}><input {...phoneProps()} id="phone" value={form.phone || ''} onChange={set('phone')} /></Field>
         <Field label="Correo" htmlFor="email"><input id="email" type="email" value={form.email || ''} onChange={set('email')} placeholder="nombre@correo.com" /></Field>
         {form.driver && !isClient && (
           <div className="span-2 lic-box">

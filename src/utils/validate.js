@@ -10,9 +10,10 @@
 // 2. Al enviar un formulario se revisa el correo y la longitud mínima (minLength) de cada campo lleno.
 //    Si algo falla, se marca el campo con el mensaje del navegador y no se envía.
 
+import { digitsText, isValidPhone, phoneRule } from './phones'
+
 export const EMAIL_RE = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i
 export const NAME_RE = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' .-]{2,60}$/
-export const PHONE_RE = /^[0-9]{7,10}$/
 export const DOC_RE = /^[0-9]{5,15}$/
 export const LICENSE_RE = /^[A-Za-z0-9]{3,20}$/
 export const USERNAME_RE = /^[a-z0-9._-]{3,30}$/i
@@ -84,7 +85,7 @@ export const formErrors = (fields) => {
     if (!v) { if (required) out.push(`${label} es obligatorio.`); continue }
     if (type === 'doc' && !DOC_RE.test(v)) out.push('El documento solo admite números (5 a 15).')
     if (type === 'name' && !NAME_RE.test(v)) out.push(`${label} solo admite letras.`)
-    if (type === 'phone' && !PHONE_RE.test(v)) out.push('El celular debe tener de 7 a 10 números.')
+    if (type === 'phone' && !isValidPhone(v)) out.push(`El celular debe tener ${digitsText(phoneRule())}, sin el indicativo del país.`)
     if (type === 'email' && !EMAIL_RE.test(v)) out.push('El correo no es válido.')
     if (type === 'username' && !USERNAME_RE.test(v)) out.push('El usuario solo admite letras, números, punto, guion y guion bajo (3 a 30).')
   }

@@ -6,6 +6,7 @@ import { Badge, Field, Modal, Spinner } from '../../components/ui'
 import { DocIcon, MoneyInput, PhotoInput, Tabs } from '../../components/forms'
 import { formatDate, formatMoney } from '../../utils/format'
 import { todayBogota } from '../pagos/common'
+import { phoneProps } from '../../utils/phones'
 
 export const KINDS = [['moto', 'Moto'], ['carro', 'Carro'], ['camioneta', 'Camioneta'], ['otro', 'Otro']]
 export const STATUS = { activo: ['Activo', 'ok'], taller: ['En taller', 'warn'], inactivo: ['Inactivo', 'muted'] }
@@ -105,7 +106,7 @@ export const LicenseBadge = ({ driver }) => {
   return <Badge tone={tone}>Licencia {driver.licenseCategory} {d < 0 ? `vencida hace ${-d} día(s)` : `vence el ${formatDate(driver.licenseExpires)}`}</Badge>
 }
 
-const DRIVER_EMPTY = { name: '', lastName: '', identification: '', phone: '', address: '', licenseNumber: '', licenseCategory: 'A2', licenseExpires: '', licensePhotoUrl: null, photoUrl: null, idPhotoUrl: null, idPhotoBackUrl: null, notes: '', active: true }
+const DRIVER_EMPTY = { name: '', lastName: '', docType: '', identification: '', phone: '', address: '', licenseNumber: '', licenseCategory: 'A2', licenseExpires: '', licensePhotoUrl: null, photoUrl: null, idPhotoUrl: null, idPhotoBackUrl: null, notes: '', active: true }
 // Registro del conductor con su licencia de conducción.
 export const DriverForm = ({ driver, onClose, onSaved }) => {
   const [form, setForm] = useState(() => (driver ? Object.fromEntries(Object.keys(DRIVER_EMPTY).map((k) => [k, driver[k] ?? DRIVER_EMPTY[k]])) : DRIVER_EMPTY))
@@ -133,9 +134,10 @@ export const DriverForm = ({ driver, onClose, onSaved }) => {
           </div>
           {input('name', 'Nombres', { req: true, 'data-only': 'letters' })}
           {input('lastName', 'Apellidos', { 'data-only': 'letters' })}
-          {input('identification', 'Cédula', { req: true, inputMode: 'numeric', minLength: 5, maxLength: 15 })}
-          {input('phone', 'Celular', { req: true, inputMode: 'numeric', minLength: 7, maxLength: 10, placeholder: '3001234567' })}
-          <div className="span-2">{input('address', 'Dirección')}</div>
+          <Field label="Tipo de documento" htmlFor="d-docType"><DocTypeSelect id="d-docType" value={form.docType} onChange={set('docType')} /></Field>
+          {input('identification', 'Número de documento', { req: true, inputMode: 'numeric', minLength: 5, maxLength: 15 })}
+          {input('phone', 'Celular', { req: true, ...phoneProps() })}
+          {input('address', 'Dirección')}
         </div>
         <h4 className="form-section">Licencia de conducción</h4>
         <div className="form-grid">

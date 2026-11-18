@@ -52,7 +52,7 @@ export const PaymentModal = ({ credit, onClose, onDone }) => {
     <Modal title={`Registrar pago · crédito #${credit.number}`} onClose={onClose}
       footer={<><button type="button" className="btn" onClick={onClose}>Cancelar</button><button type="submit" form="pay-form" className="btn btn-primary" disabled={saving || !amount || tooMuch || blockedAbono || needsReceipt}>{saving ? <Spinner /> : <MdCheck />} Registrar {formatMoney(amount)}</button></>}>
       <form id="pay-form" className="stack" onSubmit={submit}>
-        {credit.customer && <p style={{ margin: 0 }}><strong>{credit.customer.fullName}</strong> · {credit.customer.docType || 'CC'} {credit.customer.identification}</p>}
+        {credit.customer && <p style={{ margin: 0 }}><strong>{credit.customer.fullName}</strong> · {credit.customer.docType ? `${credit.customer.docType} ` : ''}{credit.customer.identification}</p>}
         <dl className="stat-list compact">
           <div><dt>Saldo</dt><dd className="money">{formatMoney(credit.balance)}</dd></div>
           <div><dt>Vencido</dt><dd className={`money${credit.overdue ? ' text-bad' : ''}`}>{credit.overdue ? `${formatMoney(credit.overdue)} · ${credit.overdueCount} cuota(s)` : 'Al día'}</dd></div>
