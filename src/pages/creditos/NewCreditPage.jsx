@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { MdAdd, MdDelete, MdArrowBack, MdCheck, MdPayments, MdInventory2, MdSavings, MdAutorenew, MdReceiptLong, MdSend } from 'react-icons/md'
+import { MdAdd, MdDelete, MdArrowBack, MdCheck, MdPayments, MdInventory2, MdSavings, MdAutorenew, MdBadge, MdSend } from 'react-icons/md'
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
 import { Card, Field, PageHead, Spinner } from '../../components/ui'
-import { MoneyInput, PhotoInput, Tabs } from '../../components/forms'
+import { DocIcon, MoneyInput, PhotoInput, Tabs } from '../../components/forms'
 import ScheduleTable from '../../components/ScheduleTable'
 import { FREQUENCIES, FREQ_LABEL, METHODS, METHOD_LABEL, rateText, termText, dailyMonthlyTip } from '../../utils/credit'
 import { formatDate, formatMoney } from '../../utils/format'
@@ -24,6 +24,7 @@ const NewCreditPage = () => {
   const renewId = params.get('renovar')
   const [renewal, setRenewal] = useState(null)
   const [billBusy, setBillBusy] = useState(false)
+  const [docPhotos, setDocPhotos] = useState({ front: null, back: null })
   const [rates, setRates] = useState([])
   const [products, setProducts] = useState([])
   const [discounts, setDiscounts] = useState([])
@@ -96,7 +97,7 @@ const NewCreditPage = () => {
   const rateNumber = Number(String(form.rate).replace(',', '.'))
   const missing = [
     !form.customerId && 'el cliente',
-    form.customerId && customer?.hasUtilityBill === false && 'la foto del recibo de servicios del cliente',
+    form.customerId && customer?.hasIdPhotos === false && 'la foto del documento del cliente (delantera y trasera)',
     form.kind === 'efectivo' && !(Number(form.principal) > 0) && (renewId ? 'el valor del nuevo préstamo' : 'el valor del préstamo'),
     form.kind === 'producto' && !form.items.some((it) => it.productId && Number(it.quantity) > 0) && 'al menos un producto con su cantidad',
     (String(form.rate).trim() === '' || Number.isNaN(rateNumber)) && (form.interestRateId ? 'la tasa de interés' : 'la tasa (%) de interés'),
@@ -142,14 +143,17 @@ const NewCreditPage = () => {
               <div className="span-2"><Field label="Cliente" htmlFor="nc" required>
                 <CustomerPicker id="nc" value={customer} onChange={pickCustomer} locked={Boolean(renewId)} />
               </Field></div>
-              {customer && !customer.hasUtilityBill && (
+              {customer && customer.hasIdPhotos === false && (
                 <div className="span-2 bill-needed">
-                  <div className="alert warn"><MdReceiptLong /> <span>Falta la foto del recibo de servicios de <strong>{customer.fullName}</strong> para comprobar su dirección. Tómala aquí para poder prestarle.</span></div>
-                  <PhotoInput doc value={null} label={billBusy ? 'Subiendo…' : 'Tomar foto del recibo'} placeholder={<MdReceiptLong size={34} />} onChange={async (v) => {
-                    if (!v) return
+                  <div className="alert warn"><MdBadge /> <span>Falta la foto del documento de <strong>{customer.fullName}</strong> por ambas caras. Tómalas aquí para poder prestarle.</span></div>
+                  <div className="photo-row">
+                    <PhotoInput doc value={docPhotos.front} label="Delantera" placeholder={<DocIcon side="front" />} onChange={(v) => setDocPhotos((d) => ({ ...d, front: v }))} />
+                    <PhotoInput doc value={docPhotos.back} label="Trasera" placeholder={<DocIcon side="back" />} onChange={(v) => setDocPhotos((d) => ({ ...d, back: v }))} />
+                  </div>
+                  <div><button type="button" className="btn" disabled={billBusy || !docPhotos.front || !docPhotos.back} onClick={async () => {
                     setBillBusy(true); setError('')
-                    try { await api.put(`/clientes/${customer.id}/recibo`, { utilityBillUrl: v }); setCustomer((c) => ({ ...c, hasUtilityBill: true })); setForm((f) => ({ ...f })) } catch (e) { setError(errorMessage(e)) } finally { setBillBusy(false) }
-                  }} />
+                    try { await api.put(`/clientes/${customer.id}/documento`, { idPhotoUrl: docPhotos.front, idPhotoBackUrl: docPhotos.back }); setCustomer((c) => ({ ...c, hasIdPhotos: true })); setDocPhotos({ front: null, back: null }) } catch (e) { setError(errorMessage(e)) } finally { setBillBusy(false) }
+                  }}>{billBusy && <Spinner />} Guardar documento</button></div>
                 </div>
               )}
               {!renewId && <div className="span-2"><Tabs value={form.kind} onChange={(v) => setForm((f) => ({ ...f, kind: v, items: v === 'producto' && !f.items.length ? [{ productId: '', quantity: 1 }] : f.items }))} tabs={[['efectivo', 'Crédito en efectivo'], ['producto', 'Crédito de producto']]} /></div>}

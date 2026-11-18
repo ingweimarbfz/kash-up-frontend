@@ -5,6 +5,7 @@ import api, { errorMessage } from '../../api/client'
 import { Avatar, Badge, Card, Empty, Kpi, PageHead, Spinner } from '../../components/ui'
 import { formatMoney } from '../../utils/format'
 import { todayBogota } from '../pagos/common'
+import { ReopenRequestsCard } from './common'
 
 // Administrador: avance de todas las rutas del día.
 const RoutesPage = () => {
@@ -12,7 +13,8 @@ const RoutesPage = () => {
   const [day, setDay] = useState(todayBogota())
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
-  useEffect(() => { setData(null); api.get('/rutas', { params: { fecha: day } }).then(({ data: d }) => setData(d)).catch((e) => { setError(errorMessage(e)); setData({ rows: [] }) }) }, [day])
+  const [reload, setReload] = useState(0)
+  useEffect(() => { setData(null); api.get('/rutas', { params: { fecha: day } }).then(({ data: d }) => setData(d)).catch((e) => { setError(errorMessage(e)); setData({ rows: [] }) }) }, [day, reload])
   const rows = data?.rows || []
   const tot = (k) => rows.reduce((s, r) => s + (r[k] || 0), 0)
   return (
@@ -21,6 +23,7 @@ const RoutesPage = () => {
         <input type="date" value={day} max={todayBogota()} onChange={(e) => setDay(e.target.value)} aria-label="Día" />
       </PageHead>
       {error && <div className="alert bad">{error}</div>}
+      <ReopenRequestsCard onChange={() => setReload((n) => n + 1)} />
       <div className="grid grid-kpi">
         <Kpi label="A cobrar" value={formatMoney(tot('toCollect'))} tone="dark" note={`${tot('stops')} cliente(s) en ruta`} />
         <Kpi label="Cobrado" value={formatMoney(tot('collected'))} tone="brand" note={`${formatMoney(tot('collectedOther'))} por transferencia`} />
