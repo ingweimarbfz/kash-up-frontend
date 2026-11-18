@@ -34,7 +34,14 @@ export const PaymentModal = ({ credit, onClose, onDone }) => {
   const quick = kind === 'cuota'
     ? [['Una cuota', Math.min(credit.installmentAmount, credit.balance)], ...(credit.overdue > 0 ? [[`Vencido (${credit.overdueCount})`, credit.overdue]] : []), ['Todo el saldo', credit.balance]]
     : [['Todo el capital', credit.capitalBalance]]
+  // Varias cuotas: suma lo que falta de las siguientes N cuotas pendientes (desde la más antigua).
+  const open = (credit.installments || []).filter((i) => i.status === 'pendiente' || i.status === 'parcial').sort((a, b) => a.number - b.number)
+  const pendingCount = open.length || (credit.installmentAmount > 0 ? Math.ceil(credit.balance / credit.installmentAmount) : 0)
+  const forCuotas = (n) => Math.min(credit.balance, open.length
+    ? open.slice(0, n).reduce((t, i) => t + i.amount - (i.paidAmount || 0) - (i.waived || 0), 0)
+    : n * credit.installmentAmount)
   const amount = Number(form.amount) || 0
+  const cuotasN = kind === 'cuota' ? Array.from({ length: Math.min(pendingCount, 60) }, (_, k) => k + 1).find((n) => forCuotas(n) === amount) : undefined
   const tooMuch = amount > credit.balance
   const needsReceipt = form.method === 'transferencia' && !form.receiptUrl
 
@@ -70,6 +77,14 @@ export const PaymentModal = ({ credit, onClose, onDone }) => {
         <div className="quick-amounts">
           {quick.map(([label, v]) => <button key={label} type="button" className={`btn btn-sm${amount === v ? ' on' : ''}`} disabled={blockedAbono || !v} onClick={() => setForm((f) => ({ ...f, amount: v }))}>{label} · {formatMoney(v)}</button>)}
         </div>
+        {kind === 'cuota' && pendingCount > 1 && (
+          <Field label="Número de cuotas" htmlFor="pn" hint="Calcula el valor de varias cuotas; se aplican desde la más antigua.">
+            <select id="pn" value={cuotasN || ''} onChange={(e) => e.target.value && setForm((f) => ({ ...f, amount: forCuotas(Number(e.target.value)) }))}>
+              <option value="">Otro valor</option>
+              {Array.from({ length: Math.min(pendingCount, 60) }, (_, k) => k + 1).map((n) => <option key={n} value={n}>{n} cuota{n > 1 ? 's' : ''} · {formatMoney(forCuotas(n))}</option>)}
+            </select>
+          </Field>
+        )}
         {tooMuch && <div className="alert bad">El valor supera el saldo del crédito ({formatMoney(credit.balance)}).</div>}
         <div className="form-grid">
           <Field label="Medio de pago" htmlFor="pm">
