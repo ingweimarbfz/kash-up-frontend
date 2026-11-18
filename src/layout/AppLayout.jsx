@@ -10,6 +10,7 @@ import { Avatar } from '../components/ui'
 import { formatDate } from '../utils/format'
 import { BrandLogo } from '../components/Logo'
 import SearchPalette, { useSearchShortcut } from '../components/SearchPalette'
+import { usePendingRequests, RequestToasts } from './PendingRequests'
 
 // Fecha corta: "Lun, 16 Nov 2026".
 const todayLabel = (() => {
@@ -101,6 +102,7 @@ const AppLayout = () => {
   const { has } = plan
   const sections = navFor(user.role, has)
   const { section, title } = titleFor(user.role, pathname)
+  const pending = usePendingRequests(admin)
 
   return (
     <div className={`app${collapsed ? ' sidebar-off' : ''}`}>
@@ -138,6 +140,7 @@ const AppLayout = () => {
                 : (
                   <NavLink key={i.to} to={i.to} end={i.end} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
                     <i.icon /> <span className="nav-label">{i.label}</span>
+                    {pending.counts[i.to] > 0 && <span className="nav-count" title={`${pending.counts[i.to]} por revisar`}>{pending.counts[i.to] > 99 ? '99+' : pending.counts[i.to]}</span>}
                   </NavLink>
                   )))}
             </div>
@@ -192,6 +195,7 @@ const AppLayout = () => {
           <Outlet key={site || 'all'} />
         </main>
         {searching && <SearchPalette onClose={() => setSearching(false)} />}
+        <RequestToasts items={pending.fresh} onDismiss={pending.dismiss} />
       </div>
     </div>
   )
