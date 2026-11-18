@@ -50,7 +50,7 @@ const VoidModal = ({ credit, onClose, onDone }) => {
 
 // Editar el crédito (administrador): fecha de cobro de una cuota (y las siguientes), no cobrar domingos y notas.
 // Los montos no cambian. El motivo queda en la bitácora.
-const EditModal = ({ credit, onClose, onDone }) => {
+const EditModal = ({ credit, onClose, onDone, asLender = false }) => {
   const active = credit.status === 'activo'
   const movable = credit.installments.filter((i) => i.status !== 'pagada' && i.status !== 'anulada')
   const first = movable[0]
@@ -76,13 +76,18 @@ const EditModal = ({ credit, onClose, onDone }) => {
   const submit = async (e) => {
     e.preventDefault(); setError('')
     if (f.reason.trim().length < 5) return setError('Escribe el motivo del cambio (mínimo 5 letras): queda en la bitácora.')
+    if (asLender && !datesChanged && !sundaysChanged) return setError('Elige una fecha distinta a la actual.')
     setSaving(true)
-    try { const { data } = await api.put(`/creditos/${credit.id}`, body()); onDone(data) } catch (err) { setError(errorMessage(err)); setSaving(false) }
+    try {
+      const { data, status } = await api.put(`/creditos/${credit.id}`, asLender ? { dates: body().dates || { fromNumber: Number(f.fromNumber), newDate: f.newDate, mode: f.mode }, skipSundays: f.skipSundays, reason: f.reason } : body())
+      onDone(status === 202 ? data.credit : data, status === 202 ? data.message : null)
+    } catch (err) { setError(errorMessage(err)); setSaving(false) }
   }
   return (
-    <Modal size="lg" title={`Editar crédito #${credit.number}`} onClose={onClose}
-      footer={<><button type="button" className="btn" onClick={onClose}>Cancelar</button><button type="submit" form="edit-credit" className="btn btn-primary" disabled={saving}>{saving && <Spinner />} Guardar cambios</button></>}>
+    <Modal size="lg" title={asLender ? `Solicitar cambio de fecha · crédito #${credit.number}` : `Editar crédito #${credit.number}`} onClose={onClose}
+      footer={<><button type="button" className="btn" onClick={onClose}>Cancelar</button><button type="submit" form="edit-credit" className="btn btn-primary" disabled={saving}>{saving && <Spinner />} {asLender ? 'Enviar solicitud' : 'Guardar cambios'}</button></>}>
       <form id="edit-credit" className="stack" onSubmit={submit} noValidate>
+        {asLender && <div className="alert info">El administrador recibe tu solicitud y la aprueba o la rechaza. Mientras tanto, las fechas no cambian.</div>}
         {active && movable.length > 0 ? (
           <>
             <div className="section-title">Fecha de cobro</div>
@@ -112,11 +117,55 @@ const EditModal = ({ credit, onClose, onDone }) => {
             <small className="hint">Los valores de las cuotas no cambian. Las cuotas pagadas no se mueven.</small>
           </>
         ) : <div className="alert">{active ? 'Todas las cuotas están pagadas: solo puedes cambiar las notas.' : `El crédito está ${credit.status}: solo puedes cambiar las notas.`}</div>}
-        <Field label="Notas" htmlFor="en"><textarea id="en" rows={2} value={f.notes} onChange={set('notes')} /></Field>
-        <Field label="Motivo del cambio" htmlFor="er" required hint="Queda en la bitácora junto con la fecha anterior y la nueva."><input id="er" value={f.reason} maxLength={200} onChange={set('reason')} placeholder="Ej.: el cliente cobra su sueldo el día 20" /></Field>
+        {!asLender && <Field label="Notas" htmlFor="en"><textarea id="en" rows={2} value={f.notes} onChange={set('notes')} /></Field>}
+        <Field label="Motivo del cambio" htmlFor="er" required hint={asLender ? 'El administrador lo ve al decidir. Queda en la bitácora.' : 'Queda en la bitácora junto con la fecha anterior y la nueva.'}><input id="er" value={f.reason} maxLength={200} onChange={set('reason')} placeholder="Ej.: el cliente cobra su sueldo el día 20" /></Field>
         {error && <div className="alert bad">{error}</div>}
       </form>
     </Modal>
+  )
+}
+
+// Solicitud de cambio de fecha pendiente: el administrador la aprueba o rechaza; el prestamista puede retirarla.
+const PendingChange = ({ credit, admin, onDone, toast }) => {
+  const p = credit.pendingChange
+  const [busy, setBusy] = useState('')
+  const [rejecting, setRejecting] = useState(false)
+  const [note, setNote] = useState('')
+  const [error, setError] = useState('')
+  if (!p) return null
+  const act = async (kind) => {
+    setError('')
+    if (kind === 'rechazar' && admin && !note.trim()) return setError('Escribe el motivo del rechazo.')
+    setBusy(kind)
+    try {
+      await api.post(`/solicitudes-cambio-credito/${p.id}/${kind}`, { note: note.trim() || undefined })
+      toast(kind === 'aprobar' ? 'Cambio de fecha aprobado' : admin ? 'Solicitud rechazada' : 'Solicitud retirada'); onDone()
+    } catch (e) { setError(errorMessage(e)); setBusy('') }
+  }
+  const first = p.changes[0]
+  return (
+    <div className="alert warn">
+      <div className="stack" style={{ gap: 6, width: '100%' }}>
+        <span><strong>{admin ? `${p.requestedBy} pidió cambiar la fecha de cobro` : 'Pediste cambiar la fecha de cobro'}</strong> · {formatDateTime(p.createdAt)}</span>
+        {first && <span>Cuota {first.number}: {formatDate(first.from)} <MdArrowForward /> {formatDate(first.to)}{p.changes.length > 1 ? ` y ${p.changes.length - 1} cuota(s) siguiente(s), hasta el ${formatDate(p.changes[p.changes.length - 1].to)}` : ''}.</span>}
+        <span>Motivo: “{p.reason}”</span>
+        {admin ? (
+          rejecting ? (
+            <div className="row-actions">
+              <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="Motivo del rechazo" aria-label="Motivo del rechazo" />
+              <button type="button" className="btn btn-sm" onClick={() => act('rechazar')} disabled={!!busy}>{busy === 'rechazar' && <Spinner />} Rechazar</button>
+              <button type="button" className="btn btn-sm btn-ghost" onClick={() => setRejecting(false)}>Volver</button>
+            </div>
+          ) : (
+            <div className="row-actions">
+              <button type="button" className="btn btn-sm btn-primary" onClick={() => act('aprobar')} disabled={!!busy}>{busy === 'aprobar' && <Spinner />} Aprobar cambio</button>
+              <button type="button" className="btn btn-sm" onClick={() => setRejecting(true)} disabled={!!busy}>Rechazar</button>
+            </div>
+          )
+        ) : <div><button type="button" className="btn btn-sm btn-ghost" onClick={() => act('rechazar')} disabled={!!busy}>{busy && <Spinner />} Retirar solicitud</button></div>}
+        {error && <div className="alert bad">{error}</div>}
+      </div>
+    </div>
   )
 }
 
@@ -149,10 +198,12 @@ const CreditDetail = () => {
         <button type="button" className="btn btn-ghost" onClick={() => navigate(-1)}><MdArrowBack /> Volver</button>
         <button type="button" className="btn" onClick={() => window.print()}><MdPrint /> Imprimir</button>
         {user.role === 'administrador' && c.status !== 'anulado' && <button type="button" className="btn" onClick={() => setEditing(true)}><MdEdit /> Editar</button>}
+        {user.role === 'prestamista' && c.status === 'activo' && !c.pendingChange && c.installments.some((i) => i.status !== 'pagada' && i.status !== 'anulada') && <button type="button" className="btn" onClick={() => setEditing(true)}><MdEdit /> Solicitar cambio de fecha</button>}
         {user.role === 'administrador' && c.status === 'activo' && !applied.length && <button type="button" className="btn" onClick={() => setVoiding(true)}><MdBlock /> Anular</button>}
         {c.status === 'activo' && <button type="button" className="btn" disabled={c.overdueCount > 0} title={renewTitle} onClick={() => navigate(`/creditos/nuevo?renovar=${c.id}`)}><MdAutorenew /> Renovar</button>}
         {canPay && <button type="button" className="btn btn-primary" onClick={() => setPaying(true)}><MdPayments /> Registrar pago</button>}
       </PageHead>
+      <PendingChange credit={c} admin={user.role === 'administrador'} onDone={load} toast={toast} />
       {c.status === 'anulado' && <div className="alert warn">Crédito anulado. Motivo: {c.voidReason}</div>}
       {c.renewedBy && <div className="alert info">Este crédito se cerró al renovarse con el <a className="link" onClick={() => navigate(`/creditos/${c.renewedBy.id}`)}>crédito #{c.renewedBy.number}</a>.</div>}
       {c.renewedFrom && <div className="alert info">Renovación del <a className="link" onClick={() => navigate(`/creditos/${c.renewedFrom.id}`)}>crédito #{c.renewedFrom.number}</a>: se descontó su saldo de {formatMoney(c.payoffAmount)} y se entregó el restante.</div>}
@@ -205,7 +256,7 @@ const CreditDetail = () => {
       </div>
       {paying && <PaymentModal credit={c} onClose={() => setPaying(false)} onDone={(r) => { setPaying(false); load(); setReceipt({ id: r.id, initial: r }); toast(`Pago ${r.number} registrado`) }} />}
       {receipt && <ReceiptModal paymentId={receipt.id} initial={receipt.initial} onClose={() => setReceipt(null)} onChanged={() => { load(); toast('Pago anulado') }} />}
-      {editing && <EditModal credit={c} onClose={() => setEditing(false)} onDone={(d) => { setEditing(false); setC(d); toast('Crédito actualizado') }} />}
+      {editing && <EditModal credit={c} asLender={user.role === 'prestamista'} onClose={() => setEditing(false)} onDone={(d, msg) => { setEditing(false); setC(d); toast(msg || 'Crédito actualizado') }} />}
       {voiding && <VoidModal credit={c} onClose={() => setVoiding(false)} onDone={(d) => { setVoiding(false); setC(d); toast('Crédito anulado') }} />}
       {toastNode}
     </div>

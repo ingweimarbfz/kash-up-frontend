@@ -11,6 +11,32 @@ const FILTERS = [['pendiente', 'Pendientes'], ['', 'Todas']]
 
 // Solicitudes de crédito adicional: el prestamista pide otro crédito para un cliente que ya tiene uno activo
 // y el administrador lo aprueba (se crea y se entrega) o lo rechaza.
+// Solicitudes para cambiar la fecha de cobro de un crédito (se aprueban o rechazan desde el crédito).
+const ChangeRequestsCard = ({ admin }) => {
+  const navigate = useNavigate()
+  const [rows, setRows] = useState(null)
+  useEffect(() => { api.get('/solicitudes-cambio-credito', { params: { estado: admin ? 'pendiente' : undefined } }).then(({ data }) => setRows(admin ? data : data.slice(0, 10))).catch(() => setRows([])) }, [admin])
+  if (!rows?.length) return null
+  return (
+    <Card title={admin ? `Cambios de fecha por aprobar (${rows.length})` : 'Mis solicitudes de cambio de fecha'} subtitle={admin ? 'Abre el crédito para aprobar o rechazar.' : null} flush>
+      <div className="stops">
+        {rows.map((r) => {
+          const first = r.changes[0]
+          return (
+            <div key={r.id} className="stop clickable" onClick={() => navigate(`/creditos/${r.creditId}`)}>
+              <div className="grow">
+                <strong>Crédito #{r.creditNumber} · {r.customer}</strong>
+                <small>{first ? `Cuota ${first.number}: ${formatDate(first.from)} → ${formatDate(first.to)}${r.changes.length > 1 ? ` (+${r.changes.length - 1})` : ''} · ` : ''}“{r.reason}” · {admin ? `${r.requestedBy} · ` : ''}{formatDateTime(r.createdAt)}{r.resolution ? ` · ${r.resolution}` : ''}</small>
+              </div>
+              <Badge tone={STATUS[r.status][1]}>{r.statusLabel}</Badge>
+            </div>
+          )
+        })}
+      </div>
+    </Card>
+  )
+}
+
 const RequestsPage = () => {
   const { user } = useAuth()
   const admin = user.role === 'administrador'
@@ -42,6 +68,7 @@ const RequestsPage = () => {
     <div className="stack">
       <PageHead title={admin ? 'Solicitudes de crédito' : 'Mis solicitudes'} subtitle={admin ? 'Créditos adicionales que piden los prestamistas para clientes que ya tienen uno activo.' : 'Créditos adicionales esperando la aprobación del administrador.'} />
       {state?.message && <div className="alert info"><MdPlaylistAddCheck /> <span>{state.message}</span></div>}
+      <ChangeRequestsCard admin={admin} />
       <Card flush>
         <div className="toolbar"><div className="seg">{FILTERS.map(([k, l]) => <button key={k} type="button" className={`btn btn-sm${filter === k ? ' on' : ''}`} onClick={() => setFilter(k)}>{l}</button>)}</div></div>
         {!rows ? <div className="splash" style={{ minHeight: 200 }}><Spinner /></div>
