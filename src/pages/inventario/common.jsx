@@ -7,6 +7,7 @@ import api, { errorMessage } from '../../api/client'
 import { Field, Modal, Spinner } from '../../components/ui'
 import { MoneyInput } from '../../components/forms'
 import { formatMoney } from '../../utils/format'
+import { phoneProps } from '../../utils/phones'
 
 // ---------- Descuentos: ícono y color para reconocerlos de un vistazo ----------
 export const DISCOUNT_ICONS = {
@@ -197,7 +198,7 @@ export const SiteForm = ({ initial, onClose, onSaved }) => {
       <form id="site-form" className="form-grid" onSubmit={submit} noValidate>
         <div className="span-2"><Field label="Nombre de la sede" htmlFor="sn" required><input id="sn" value={f.name} onChange={set('name')} placeholder="Ej. Sede Norte, Punto Soledad" autoFocus /></Field></div>
         <Field label="Ciudad" htmlFor="sc"><input id="sc" data-only="letters" value={f.city || ''} onChange={set('city')} /></Field>
-        <Field label="Teléfono" htmlFor="sp"><input id="sp" minLength={7} maxLength={10} value={f.phone || ''} onChange={set('phone')} inputMode="numeric" /></Field>
+        <Field label="Teléfono" htmlFor="sp"><input {...phoneProps()} id="sp" value={f.phone || ''} onChange={set('phone')} /></Field>
         <div className="span-2"><Field label="Dirección" htmlFor="sa"><input id="sa" value={f.address || ''} onChange={set('address')} /></Field></div>
         <div className="span-2">
           <Field label="Capital de la sede" hint="Con capital aparte, las asignaciones, entregas y traslados de sus ruteros usan la caja de esta sede">

@@ -8,6 +8,7 @@ import { formatDateTime } from '../utils/format'
 import { LICENSE_CATS } from './vehiculos/common'
 import { formErrors, LICENSE_RE } from '../utils/validate'
 import { DocTypeSelect } from '../utils/docTypes'
+import { phoneProps } from '../utils/phones'
 
 const EMPTY_DRIVER = { licenseNumber: '', licenseCategory: 'A2', licenseExpires: '', licensePhotoUrl: null }
 const EMPTY = { docType: '', identification: '', name: '', lastName: '', username: '', email: '', phone: '', kind: 'operativo', lender: true, driver: false, password: '', resetPassword: false, active: true, siteId: '', photoUrl: null, avatarUrl: null, idPhotoUrl: null, idPhotoBackUrl: null, lic: EMPTY_DRIVER }
@@ -110,7 +111,7 @@ const UserForm = ({ initial, onClose, onSaved }) => {
             <input id="password" type="password" value={form.password} onChange={set('password')} autoComplete="new-password" disabled={form.resetPassword} />
           </Field>
         )}
-        <Field label="Celular" htmlFor="phone" required={form.driver}><input id="phone" minLength={7} value={form.phone || ''} onChange={set('phone')} inputMode="numeric" maxLength={10} placeholder="3001234567" /></Field>
+        <Field label="Celular" htmlFor="phone" required={form.driver}><input {...phoneProps()} id="phone" value={form.phone || ''} onChange={set('phone')} /></Field>
         <Field label="Correo" htmlFor="email"><input id="email" type="email" value={form.email || ''} onChange={set('email')} placeholder="nombre@correo.com" /></Field>
         {form.driver && !isClient && (
           <div className="span-2 lic-box">

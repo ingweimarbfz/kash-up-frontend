@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { Avatar, Badge, Card, Field, PageHead, Spinner, useToast } from '../components/ui'
 import { fileToDataUrl } from '../utils/image'
 import { ROLE_LABELS } from '../utils/nav'
+import { phoneProps } from '../utils/phones'
 
 const ProfilePage = () => {
   const { user, setUser } = useAuth()
@@ -53,7 +54,7 @@ const ProfilePage = () => {
         <div className="stack">
           <Card title="Datos de contacto">
             <form className="form-grid" onSubmit={(e) => { e.preventDefault(); save(contact, 'contact', 'Datos guardados') }}>
-              <Field label="Celular" htmlFor="phone"><input id="phone" inputMode="numeric" minLength={7} maxLength={10} value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} inputMode="numeric" /></Field>
+              <Field label="Celular" htmlFor="phone"><input id="phone" {...phoneProps()} value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} inputMode="numeric" /></Field>
               <Field label="Correo" htmlFor="email"><input id="email" type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} /></Field>
               <div className="span-2 right"><button type="submit" className="btn btn-primary" disabled={busy === 'contact'}>{busy === 'contact' && <Spinner />} Guardar</button></div>
             </form>

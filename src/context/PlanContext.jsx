@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import api from '../api/client'
 import { useAuth } from './AuthContext'
 import { setMoneyFormat } from '../utils/format'
+import { setPhoneCountry } from '../utils/phones'
 
 // Plan del negocio (KU-026): qué módulos tiene y en qué país/moneda opera.
 // features = null significa sin restricciones (negocio sin plan asignado).
@@ -15,6 +16,8 @@ export const PlanProvider = ({ children }) => {
     api.get('/plan/modulos')
       .then(({ data }) => {
         if (data.country) setMoneyFormat(data.country.currency, data.country.locale)
+        setPhoneCountry(data.country)
+        setPhoneCountry(data.country)
         setState({ loaded: true, ...data })
       })
       .catch(() => setState({ loaded: true, features: null, plan: null, country: null }))

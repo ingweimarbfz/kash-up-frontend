@@ -6,6 +6,7 @@ import { Badge, Field, Modal, Spinner } from '../../components/ui'
 import { DocIcon, MoneyInput, PhotoInput, Tabs } from '../../components/forms'
 import { formatDate, formatMoney } from '../../utils/format'
 import { todayBogota } from '../pagos/common'
+import { phoneProps } from '../../utils/phones'
 
 export const KINDS = [['moto', 'Moto'], ['carro', 'Carro'], ['camioneta', 'Camioneta'], ['otro', 'Otro']]
 export const STATUS = { activo: ['Activo', 'ok'], taller: ['En taller', 'warn'], inactivo: ['Inactivo', 'muted'] }
@@ -135,7 +136,7 @@ export const DriverForm = ({ driver, onClose, onSaved }) => {
           {input('lastName', 'Apellidos', { 'data-only': 'letters' })}
           <Field label="Tipo de documento" htmlFor="d-docType"><DocTypeSelect id="d-docType" value={form.docType} onChange={set('docType')} /></Field>
           {input('identification', 'Número de documento', { req: true, inputMode: 'numeric', minLength: 5, maxLength: 15 })}
-          {input('phone', 'Celular', { req: true, inputMode: 'numeric', minLength: 7, maxLength: 10, placeholder: '3001234567' })}
+          {input('phone', 'Celular', { req: true, ...phoneProps() })}
           {input('address', 'Dirección')}
         </div>
         <h4 className="form-section">Licencia de conducción</h4>

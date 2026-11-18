@@ -5,6 +5,7 @@ import { errorMessage } from '../api/client'
 import { Badge, Card, Empty, Field, Kpi, Modal, PageHead, Spinner, useToast } from '../components/ui'
 import { formatDate, formatDateTime } from '../utils/format'
 import { DocTypeSelect, docTypesFor } from '../utils/docTypes'
+import { phoneProps, phoneRuleFor } from '../utils/phones'
 import { CountryLabel, CountrySelect, Flag, FEATURE_SHORT, annualPrice, limitText, moneyIn } from '../utils/countries'
 
 const GROUPS = { cartera: 'Cartera', productos: 'Productos', cobro: 'Cobro en calle', flota: 'Flota', control: 'Control', clientes: 'Clientes' }
@@ -275,7 +276,7 @@ const OrgForm = ({ initial, cat, plans, onClose, onSaved }) => {
           <Field label="País" required htmlFor="oc" hint={country ? `Moneda ${country.currency} (${country.currencyName}) · ${country.phonePrefix}` : null}><CountrySelect id="oc" countries={cat.countries.filter((c) => c.active || c.code === f.countryCode)} value={f.countryCode} onChange={(v) => setF((x) => ({ ...x, countryCode: v, admin: x.admin ? { ...x.admin, docType: '' } : x.admin }))} /></Field>
           <Field label="Ciudad" htmlFor="ocity"><input id="ocity" data-only="letters" value={f.city || ''} onChange={(e) => set('city', e.target.value)} /></Field>
           <Field label="Contacto" htmlFor="ocn"><input id="ocn" data-only="letters" value={f.contactName || ''} onChange={(e) => set('contactName', e.target.value)} /></Field>
-          <Field label="Teléfono" htmlFor="op"><input id="op" inputMode="numeric" minLength={7} maxLength={10} value={f.phone || ''} onChange={(e) => set('phone', e.target.value)} /></Field>
+          <Field label="Teléfono" htmlFor="op"><input id="op" {...phoneProps(phoneRuleFor(f.countryCode))} value={f.phone || ''} onChange={(e) => set('phone', e.target.value)} /></Field>
           <Field label="Correo" htmlFor="oe"><input id="oe" type="email" value={f.email || ''} onChange={(e) => set('email', e.target.value)} /></Field>
           <Field label="Dirección" htmlFor="oa"><input id="oa" value={f.address || ''} onChange={(e) => set('address', e.target.value)} /></Field>
         </div>
@@ -314,7 +315,7 @@ const OrgForm = ({ initial, cat, plans, onClose, onSaved }) => {
               <Field label="Apellidos" htmlFor="al"><input id="al" data-only="letters" value={f.admin.lastName} onChange={(e) => setA('lastName', e.target.value)} /></Field>
               <Field label="Usuario" required htmlFor="au"><input id="au" value={f.admin.username} onChange={(e) => setA('username', e.target.value.toLowerCase())} placeholder="nombre.apellido" /></Field>
               <Field label="Correo" htmlFor="ae"><input id="ae" type="email" value={f.admin.email} onChange={(e) => setA('email', e.target.value)} /></Field>
-              <Field label="Teléfono" htmlFor="ap"><input id="ap" inputMode="numeric" minLength={7} maxLength={10} value={f.admin.phone} onChange={(e) => setA('phone', e.target.value)} /></Field>
+              <Field label="Teléfono" htmlFor="ap"><input id="ap" {...phoneProps(phoneRuleFor(f.countryCode))} value={f.admin.phone} onChange={(e) => setA('phone', e.target.value)} /></Field>
             </div>
           </div>
         )}
