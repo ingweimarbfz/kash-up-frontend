@@ -30,7 +30,7 @@ const CustomerForm = ({ initial, onClose, onSaved }) => {
     e.preventDefault()
     setError('')
     if (!form.photoUrl) { setError('Toma o sube la foto del cliente: es obligatoria.'); return }
-    if (!editing && !form.utilityBillUrl) { setError('Toma la foto de un recibo de servicios (agua, luz o gas) para comprobar la dirección.'); return }
+    if (!form.idPhotoUrl || !form.idPhotoBackUrl) { setError(`Toma la foto del documento ${!form.idPhotoUrl && !form.idPhotoBackUrl ? 'por ambas caras (delantera y trasera)' : !form.idPhotoUrl ? '(parte delantera)' : '(parte trasera)'}: es obligatoria.`); return }
     setSaving(true)
     try {
       const { data } = editing ? await api.put(`/clientes/${initial.id}`, form) : await api.post('/clientes', form)
@@ -47,15 +47,15 @@ const CustomerForm = ({ initial, onClose, onSaved }) => {
           <Field label="Foto de la persona" required>
             <PhotoInput value={form.photoUrl} withThumb capture="user" label="Tomar foto" onChange={({ photo, thumb }) => setForm((f) => ({ ...f, photoUrl: photo, photoThumb: thumb }))} />
           </Field>
-          <Field label="Documento · parte delantera">
+          <Field label="Documento · parte delantera" required>
             <PhotoInput doc value={form.idPhotoUrl} label="Delantera" placeholder={<DocIcon side="front" />} onChange={(v) => setForm((f) => ({ ...f, idPhotoUrl: v }))} />
           </Field>
-          <Field label="Documento · parte trasera">
+          <Field label="Documento · parte trasera" required>
             <PhotoInput doc value={form.idPhotoBackUrl} label="Trasera" placeholder={<DocIcon side="back" />} onChange={(v) => setForm((f) => ({ ...f, idPhotoBackUrl: v }))} />
           </Field>
         </div>
         <div className="span-2 photo-row">
-          <Field label="Recibo de servicios públicos" required={!editing} hint="Agua, luz o gas a nombre del hogar: comprueba la dirección de residencia.">
+          <Field label="Recibo de servicios públicos" hint="Opcional. Agua, luz o gas a nombre del hogar: ayuda a comprobar la dirección.">
             <PhotoInput doc value={form.utilityBillUrl} label="Recibo" placeholder={<MdReceiptLong size={34} />} onChange={(v) => setForm((f) => ({ ...f, utilityBillUrl: v }))} />
           </Field>
         </div>

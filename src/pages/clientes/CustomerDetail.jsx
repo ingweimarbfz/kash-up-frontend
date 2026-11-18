@@ -7,7 +7,7 @@ import { Badge, Card, Empty, Field, Modal, PageHead, Spinner, useToast } from '.
 import { formatDate, formatMoney } from '../../utils/format'
 import { CREDIT_STATUS, CUSTOMER_STATUS, FREQ_LABEL, KIND_LABEL } from '../../utils/credit'
 import TransferModal from './TransferModal'
-import { PhotoInput } from '../../components/forms'
+import { DocIcon, PhotoInput } from '../../components/forms'
 import CustomerForm from './CustomerForm'
 
 const SCORE_COLORS = { ok: '#10B981', brand: '#059669', warn: '#F59E0B', bad: '#EF4444', '': '#A1A1AA' }
@@ -61,6 +61,7 @@ const CustomerDetail = () => {
   const [access, setAccess] = useState(false)
   const [transfer, setTransfer] = useState(false)
   const [billBusy, setBillBusy] = useState(false)
+  const [docPhotos, setDocPhotos] = useState({ front: null, back: null })
   const [toast, toastNode] = useToast()
   const load = useCallback(() => { api.get(`/clientes/${id}`).then(({ data }) => setC(data)).catch((e) => setError(errorMessage(e))) }, [id])
   useEffect(() => { load() }, [load])
@@ -136,10 +137,25 @@ const CustomerDetail = () => {
         </Card>
         <div className="stack">
           <ScoreCard score={c.score} />
-          {!c.utilityBillUrl && (
-            <Card title="Recibo de servicios" icon={<MdReceiptLong />}>
+          {!(c.idPhotoUrl && c.idPhotoBackUrl) && (
+            <Card title="Documento de identidad" icon={<MdWarningAmber />}>
               <div className="stack">
-                <div className="alert warn"><MdWarningAmber /> Falta la foto del recibo de servicios. Sin ella no se le puede prestar.</div>
+                <div className="alert warn"><MdWarningAmber /> Falta la foto del documento {!c.idPhotoUrl && !c.idPhotoBackUrl ? 'por ambas caras' : !c.idPhotoUrl ? '(parte delantera)' : '(parte trasera)'}. Sin ella no se le puede prestar.</div>
+                <div className="photo-row">
+                  {!c.idPhotoUrl && <PhotoInput doc value={docPhotos.front} label="Delantera" placeholder={<DocIcon side="front" />} onChange={(v) => setDocPhotos((d) => ({ ...d, front: v }))} />}
+                  {!c.idPhotoBackUrl && <PhotoInput doc value={docPhotos.back} label="Trasera" placeholder={<DocIcon side="back" />} onChange={(v) => setDocPhotos((d) => ({ ...d, back: v }))} />}
+                </div>
+                <div><button type="button" className="btn" disabled={billBusy || (!c.idPhotoUrl && !docPhotos.front) || (!c.idPhotoBackUrl && !docPhotos.back)} onClick={async () => {
+                  setBillBusy(true)
+                  try { await api.put(`/clientes/${c.id}/documento`, { idPhotoUrl: docPhotos.front, idPhotoBackUrl: docPhotos.back }); toast('Documento guardado'); setDocPhotos({ front: null, back: null }); load() } catch (e) { toast(errorMessage(e), 'bad') } finally { setBillBusy(false) }
+                }}>{billBusy && <Spinner />} Guardar documento</button></div>
+              </div>
+            </Card>
+          )}
+          {!c.utilityBillUrl && (
+            <Card title="Recibo de servicios (opcional)" icon={<MdReceiptLong />}>
+              <div className="stack">
+                <small className="hint">Agua, luz o gas: ayuda a comprobar la dirección. No es obligatorio para prestar.</small>
                 <PhotoInput doc value={null} label={billBusy ? 'Subiendo…' : 'Tomar foto del recibo'} placeholder={<MdReceiptLong size={34} />} onChange={async (v) => {
                   if (!v) return
                   setBillBusy(true)
