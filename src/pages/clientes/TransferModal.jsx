@@ -24,7 +24,6 @@ const TransferModal = ({ customer, onClose, onDone }) => {
     e.preventDefault(); setError('')
     if (!form.lenderId) return setError('Elige el prestamista de la nueva ruta.')
     if (moving && !form.address.trim()) return setError('Escribe la nueva dirección.')
-    if (moving && !form.utilityBillUrl) return setError('Toma la foto del recibo de servicios de la nueva dirección.')
     setSaving(true)
     try {
       const body = moving ? form : { lenderId: form.lenderId, note: form.note }
@@ -48,7 +47,7 @@ const TransferModal = ({ customer, onClose, onDone }) => {
             <Field label="Barrio" htmlFor="trn"><input id="trn" value={form.neighborhood} onChange={set('neighborhood')} /></Field>
             <Field label="Ciudad" htmlFor="trc"><input id="trc" data-only="letters" value={form.city} onChange={set('city')} /></Field>
             <Field label="Ubicación en el mapa"><LocationButton lat={form.lat} lng={form.lng} onChange={({ lat, lng }) => setForm((f) => ({ ...f, lat, lng }))} /></Field>
-            <div className="span-2"><Field label="Recibo de servicios de la nueva casa" required hint="Agua, luz o gas: comprueba la nueva dirección.">
+            <div className="span-2"><Field label="Recibo de servicios de la nueva casa" hint="Opcional. Agua, luz o gas: ayuda a comprobar la nueva dirección.">
               <PhotoInput doc value={form.utilityBillUrl} label="Recibo" placeholder={<MdReceiptLong size={34} />} onChange={set('utilityBillUrl')} />
             </Field></div>
           </>
