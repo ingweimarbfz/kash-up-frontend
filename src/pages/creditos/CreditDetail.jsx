@@ -50,6 +50,9 @@ const VoidModal = ({ credit, onClose, onDone }) => {
 
 // Editar el crédito (administrador): fecha de cobro de una cuota (y las siguientes), no cobrar domingos y notas.
 // Los montos no cambian. El motivo queda en la bitácora.
+// Prestamista: envía una solicitud. Si es de fecha, ve la cuota y la nueva fecha; si es otro cambio (valor, interés,
+// cuotas), solo lo describe, y únicamente si el crédito no tiene pagos (el administrador pide anular y crear de nuevo).
+const REQUEST_KINDS = [['fecha', 'Cambio de fecha de cobro'], ['valor', 'Cambiar el valor'], ['interes', 'Cambiar el interés'], ['cuotas', 'Cambiar el número de cuotas'], ['otro', 'Otro cambio']]
 const EditModal = ({ credit, onClose, onDone, asLender = false }) => {
   const active = credit.status === 'activo'
   const movable = credit.installments.filter((i) => i.status !== 'pagada' && i.status !== 'anulada')
@@ -58,6 +61,9 @@ const EditModal = ({ credit, onClose, onDone, asLender = false }) => {
   const [preview, setPreview] = useState(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [kind, setKind] = useState('fecha')
+  const hasPayments = (credit.payments || []).some((p) => p.status === 'aplicado')
+  const isDate = !asLender || kind === 'fecha'
   const set = (k) => (e) => setF((x) => ({ ...x, [k]: e?.target ? (e.target.type === 'checkbox' ? e.target.checked : e.target.value) : e }))
   const target = credit.installments.find((i) => String(i.number) === f.fromNumber)
   const datesChanged = active && target && f.newDate && f.newDate !== target.dueDate
@@ -67,14 +73,22 @@ const EditModal = ({ credit, onClose, onDone, asLender = false }) => {
     skipSundays: f.skipSundays, notes: f.notes, reason: f.reason
   })
   useEffect(() => {
-    if (!datesChanged && !(active && sundaysChanged)) { setPreview(null); setError(''); return undefined }
+    if (!isDate || (!datesChanged && !(active && sundaysChanged))) { setPreview(null); setError(''); return undefined }
     const t = setTimeout(() => {
       api.put(`/creditos/${credit.id}`, { ...body(), preview: true }).then(({ data }) => { setPreview(data.changes); setError('') }).catch((e) => { setPreview(null); setError(errorMessage(e)) })
     }, 300)
     return () => clearTimeout(t)
-  }, [f.fromNumber, f.newDate, f.mode, f.skipSundays]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [f.fromNumber, f.newDate, f.mode, f.skipSundays, isDate]) // eslint-disable-line react-hooks/exhaustive-deps
   const submit = async (e) => {
     e.preventDefault(); setError('')
+    if (!isDate) {
+      if (f.reason.trim().length < 5) return setError('Explica el cambio que necesitas (mínimo 5 letras).')
+      setSaving(true)
+      try {
+        const { data } = await api.put(`/creditos/${credit.id}`, { kind: 'otro', topic: kind, reason: f.reason })
+        return onDone(data.credit, data.message)
+      } catch (err) { setError(errorMessage(err)); return setSaving(false) }
+    }
     if (f.reason.trim().length < 5) return setError('Escribe el motivo del cambio (mínimo 5 letras): queda en la bitácora.')
     if (asLender && !datesChanged && !sundaysChanged) return setError('Elige una fecha distinta a la actual.')
     setSaving(true)
@@ -84,11 +98,20 @@ const EditModal = ({ credit, onClose, onDone, asLender = false }) => {
     } catch (err) { setError(errorMessage(err)); setSaving(false) }
   }
   return (
-    <Modal size="lg" title={asLender ? `Solicitar cambio de fecha · crédito #${credit.number}` : `Editar crédito #${credit.number}`} onClose={onClose}
+    <Modal size="lg" title={asLender ? `Solicitar cambio · crédito #${credit.number}` : `Editar crédito #${credit.number}`} onClose={onClose}
       footer={<><button type="button" className="btn" onClick={onClose}>Cancelar</button><button type="submit" form="edit-credit" className="btn btn-primary" disabled={saving}>{saving && <Spinner />} {asLender ? 'Enviar solicitud' : 'Guardar cambios'}</button></>}>
       <form id="edit-credit" className="stack" onSubmit={submit} noValidate>
-        {asLender && <div className="alert info">El administrador recibe tu solicitud y la aprueba o la rechaza. Mientras tanto, las fechas no cambian.</div>}
-        {active && movable.length > 0 ? (
+        {asLender && (
+          <Field label="Tipo de solicitud" htmlFor="ek" hint={hasPayments ? 'El crédito ya tiene pagos registrados: solo se puede pedir cambio de fecha.' : null}>
+            <select id="ek" value={kind} onChange={(e) => { setKind(e.target.value); setError('') }}>
+              {REQUEST_KINDS.filter(([k]) => k === 'fecha' || !hasPayments).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+            </select>
+          </Field>
+        )}
+        {asLender && (isDate
+          ? <div className="alert info">El administrador recibe tu solicitud y la aprueba o la rechaza. Mientras tanto, las fechas no cambian.</div>
+          : <div className="alert info">El administrador recibe tu solicitud. Para cambiar el valor, el interés o las cuotas, lo normal es anular este crédito y crear uno nuevo con los datos correctos.</div>)}
+        {!isDate ? null : active && movable.length > 0 ? (
           <>
             <div className="section-title">Fecha de cobro</div>
             <div className="form-grid">
@@ -118,7 +141,7 @@ const EditModal = ({ credit, onClose, onDone, asLender = false }) => {
           </>
         ) : <div className="alert">{active ? 'Todas las cuotas están pagadas: solo puedes cambiar las notas.' : `El crédito está ${credit.status}: solo puedes cambiar las notas.`}</div>}
         {!asLender && <Field label="Notas" htmlFor="en"><textarea id="en" rows={2} value={f.notes} onChange={set('notes')} /></Field>}
-        <Field label="Motivo del cambio" htmlFor="er" required hint={asLender ? 'El administrador lo ve al decidir. Queda en la bitácora.' : 'Queda en la bitácora junto con la fecha anterior y la nueva.'}><input id="er" value={f.reason} maxLength={200} onChange={set('reason')} placeholder="Ej.: el cliente cobra su sueldo el día 20" /></Field>
+        <Field label={isDate ? 'Motivo del cambio' : 'Describe el cambio'} htmlFor="er" required hint={asLender ? 'El administrador lo ve al decidir. Queda en la bitácora.' : 'Queda en la bitácora junto con la fecha anterior y la nueva.'}><input id="er" value={f.reason} maxLength={200} onChange={set('reason')} placeholder={isDate ? 'Ej.: el cliente cobra su sueldo el día 20' : 'Ej.: el valor correcto es 500.000, no 50.000'} /></Field>
         {error && <div className="alert bad">{error}</div>}
       </form>
     </Modal>
@@ -126,7 +149,7 @@ const EditModal = ({ credit, onClose, onDone, asLender = false }) => {
 }
 
 // Texto rápido para rechazar cuando el cambio no es solo de fechas (monto, tasa, cuotas…).
-const ANULAR_Y_CREAR = 'Este cambio no se puede hacer editando fechas. Anula el crédito y créalo de nuevo con los datos correctos.'
+const ANULAR_Y_CREAR = 'Este cambio no se puede hacer editando el crédito. Anula el crédito y créalo de nuevo con los datos correctos.'
 
 // Solicitud de cambio de fecha pendiente: el administrador la aprueba o rechaza; el prestamista puede retirarla.
 const PendingChange = ({ credit, admin, onDone, toast }) => {
@@ -146,12 +169,14 @@ const PendingChange = ({ credit, admin, onDone, toast }) => {
     } catch (e) { setError(errorMessage(e)); setBusy('') }
   }
   const first = p.changes[0]
+  const other = p.kind === 'otro'
   return (
     <div className="alert warn">
       <div className="stack" style={{ gap: 6, width: '100%' }}>
-        <span><strong>{admin ? `${p.requestedBy} pidió cambiar la fecha de cobro` : 'Pediste cambiar la fecha de cobro'}</strong> · {formatDateTime(p.createdAt)}</span>
-        {first && <span>Cuota {first.number}: {formatDate(first.from)} <MdArrowForward /> {formatDate(first.to)}{p.changes.length > 1 ? ` y ${p.changes.length - 1} cuota(s) siguiente(s), hasta el ${formatDate(p.changes[p.changes.length - 1].to)}` : ''}.</span>}
-        <span>Motivo: “{p.reason}”</span>
+        <span><strong>{other ? (admin ? `${p.requestedBy} pidió: ${p.topicLabel.toLowerCase()}` : `Pediste: ${p.topicLabel.toLowerCase()}`) : admin ? `${p.requestedBy} pidió cambiar la fecha de cobro` : 'Pediste cambiar la fecha de cobro'}</strong> · {formatDateTime(p.createdAt)}</span>
+        {!other && first && <span>Cuota {first.number}: {formatDate(first.from)} <MdArrowForward /> {formatDate(first.to)}{p.changes.length > 1 ? ` y ${p.changes.length - 1} cuota(s) siguiente(s), hasta el ${formatDate(p.changes[p.changes.length - 1].to)}` : ''}.</span>}
+        <span>{other ? 'Detalle' : 'Motivo'}: “{p.reason}”</span>
+        {admin && other && !rejecting && <small>Este cambio no se aplica editando el crédito. Recházalo y pide al prestamista que lo anule y cree uno nuevo{credit.payments?.some((x) => x.status === 'aplicado') ? '' : ', o anúlalo tú desde el botón Anular'}.</small>}
         {admin ? (
           rejecting ? (
             <div className="stack" style={{ gap: 6 }}>
@@ -166,7 +191,9 @@ const PendingChange = ({ credit, admin, onDone, toast }) => {
             </div>
           ) : (
             <div className="row-actions">
-              <button type="button" className="btn btn-sm btn-primary" onClick={() => act('aprobar')} disabled={!!busy}>{busy === 'aprobar' && <Spinner />} Aprobar cambio</button>
+              {other
+                ? <button type="button" className="btn btn-sm btn-primary" onClick={() => { setNote(ANULAR_Y_CREAR); setRejecting(true) }} disabled={!!busy}>Rechazar y pedir anular</button>
+                : <button type="button" className="btn btn-sm btn-primary" onClick={() => act('aprobar')} disabled={!!busy}>{busy === 'aprobar' && <Spinner />} Aprobar cambio</button>}
               <button type="button" className="btn btn-sm" onClick={() => setRejecting(true)} disabled={!!busy}>Rechazar</button>
             </div>
           )
@@ -206,7 +233,7 @@ const CreditDetail = () => {
         <button type="button" className="btn btn-ghost" onClick={() => navigate(-1)}><MdArrowBack /> Volver</button>
         <button type="button" className="btn" onClick={() => window.print()}><MdPrint /> Imprimir</button>
         {user.role === 'administrador' && c.status !== 'anulado' && <button type="button" className="btn" onClick={() => setEditing(true)}><MdEdit /> Editar</button>}
-        {user.role === 'prestamista' && c.status === 'activo' && !c.pendingChange && c.installments.some((i) => i.status !== 'pagada' && i.status !== 'anulada') && <button type="button" className="btn" onClick={() => setEditing(true)}><MdEdit /> Solicitar cambio de fecha</button>}
+        {user.role === 'prestamista' && c.status === 'activo' && !c.pendingChange && c.installments.some((i) => i.status !== 'pagada' && i.status !== 'anulada') && <button type="button" className="btn" onClick={() => setEditing(true)}><MdEdit /> Solicitar cambio</button>}
         {user.role === 'administrador' && c.status === 'activo' && !applied.length && <button type="button" className="btn" onClick={() => setVoiding(true)}><MdBlock /> Anular</button>}
         {c.status === 'activo' && <button type="button" className="btn" disabled={c.overdueCount > 0} title={renewTitle} onClick={() => navigate(`/creditos/nuevo?renovar=${c.id}`)}><MdAutorenew /> Renovar</button>}
         {canPay && <button type="button" className="btn btn-primary" onClick={() => setPaying(true)}><MdPayments /> Registrar pago</button>}
