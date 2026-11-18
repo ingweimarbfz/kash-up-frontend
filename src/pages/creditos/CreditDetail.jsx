@@ -125,6 +125,9 @@ const EditModal = ({ credit, onClose, onDone, asLender = false }) => {
   )
 }
 
+// Texto rápido para rechazar cuando el cambio no es solo de fechas (monto, tasa, cuotas…).
+const ANULAR_Y_CREAR = 'Este cambio no se puede hacer editando fechas. Anula el crédito y créalo de nuevo con los datos correctos.'
+
 // Solicitud de cambio de fecha pendiente: el administrador la aprueba o rechaza; el prestamista puede retirarla.
 const PendingChange = ({ credit, admin, onDone, toast }) => {
   const p = credit.pendingChange
@@ -151,10 +154,15 @@ const PendingChange = ({ credit, admin, onDone, toast }) => {
         <span>Motivo: “{p.reason}”</span>
         {admin ? (
           rejecting ? (
+            <div className="stack" style={{ gap: 6 }}>
+            <div className="row-actions">
+              <button type="button" className="btn btn-sm btn-ghost" onClick={() => setNote(ANULAR_Y_CREAR)}>Pedir que anule y cree de nuevo</button>
+            </div>
             <div className="row-actions">
               <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="Motivo del rechazo" aria-label="Motivo del rechazo" />
               <button type="button" className="btn btn-sm" onClick={() => act('rechazar')} disabled={!!busy}>{busy === 'rechazar' && <Spinner />} Rechazar</button>
               <button type="button" className="btn btn-sm btn-ghost" onClick={() => setRejecting(false)}>Volver</button>
+            </div>
             </div>
           ) : (
             <div className="row-actions">
