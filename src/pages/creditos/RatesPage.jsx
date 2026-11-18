@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { Badge, Card, Empty, Field, Modal, PageHead, Spinner, useToast } from '../../components/ui'
 import { MoneyInput } from '../../components/forms'
 import ScheduleTable from '../../components/ScheduleTable'
-import { FREQUENCIES, FREQ_LABEL, METHODS, METHOD_LABEL, rateText } from '../../utils/credit'
+import { FREQUENCIES, FREQ_LABEL, METHODS, METHOD_LABEL, rateText, termText } from '../../utils/credit'
 import { formatMoney } from '../../utils/format'
 
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date())
@@ -86,8 +86,8 @@ export const Simulator = ({ rates }) => {
         <Field label="Periodicidad" htmlFor="sf"><select id="sf" value={form.frequency} onChange={set('frequency')}>{FREQUENCIES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></Field>
         {form.frequency === 'personalizada'
           ? <Field label="Cada cuántos días" htmlFor="sd"><input id="sd" type="number" min="1" max="365" value={form.customDays} onChange={set('customDays')} /></Field>
-          : <Field label="Número de cuotas" htmlFor="sc"><input id="sc" type="number" min="1" max="720" value={form.count} onChange={set('count')} /></Field>}
-        {form.frequency === 'personalizada' && <Field label="Número de cuotas" htmlFor="sc2"><input id="sc2" type="number" min="1" max="720" value={form.count} onChange={set('count')} /></Field>}
+          : <Field label="Número de cuotas" htmlFor="sc" hint={termText(form)}><input id="sc" type="number" min="1" max="720" value={form.count} onChange={set('count')} /></Field>}
+        {form.frequency === 'personalizada' && <Field label="Número de cuotas" htmlFor="sc2" hint={termText(form)}><input id="sc2" type="number" min="1" max="720" value={form.count} onChange={set('count')} /></Field>}
         <Field label="Desembolso" htmlFor="sdd"><input id="sdd" type="date" value={form.disbursementDate} onChange={set('disbursementDate')} /></Field>
         {form.frequency === 'diaria' && <label className="check span-2"><input type="checkbox" checked={form.skipSundays} onChange={set('skipSundays')} /> No cobrar los domingos</label>}
         <div className="span-2 right"><button type="submit" className="btn btn-accent" disabled={busy}>{busy ? <Spinner /> : <MdCalculate />} Calcular</button></div>
