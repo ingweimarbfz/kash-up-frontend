@@ -11,14 +11,14 @@ const FILTERS = [['pendiente', 'Pendientes'], ['', 'Todas']]
 
 // Solicitudes de crédito adicional: el prestamista pide otro crédito para un cliente que ya tiene uno activo
 // y el administrador lo aprueba (se crea y se entrega) o lo rechaza.
-// Solicitudes para cambiar la fecha de cobro de un crédito (se aprueban o rechazan desde el crédito).
+// Solicitudes de cambio de un crédito: fecha de cobro u otro cambio (se aprueban o rechazan desde el crédito).
 const ChangeRequestsCard = ({ admin }) => {
   const navigate = useNavigate()
   const [rows, setRows] = useState(null)
   useEffect(() => { api.get('/solicitudes-cambio-credito', { params: { estado: admin ? 'pendiente' : undefined } }).then(({ data }) => setRows(admin ? data : data.slice(0, 10))).catch(() => setRows([])) }, [admin])
   if (!rows?.length) return null
   return (
-    <Card title={admin ? `Cambios de fecha por aprobar (${rows.length})` : 'Mis solicitudes de cambio de fecha'} subtitle={admin ? 'Abre el crédito para aprobar o rechazar.' : null} flush>
+    <Card title={admin ? `Cambios de crédito por revisar (${rows.length})` : 'Mis solicitudes de cambio de crédito'} subtitle={admin ? 'Abre el crédito para aprobar o rechazar.' : null} flush>
       <div className="stops">
         {rows.map((r) => {
           const first = r.changes[0]
@@ -26,7 +26,7 @@ const ChangeRequestsCard = ({ admin }) => {
             <div key={r.id} className="stop clickable" onClick={() => navigate(`/creditos/${r.creditId}`)}>
               <div className="grow">
                 <strong>Crédito #{r.creditNumber} · {r.customer}</strong>
-                <small>{first ? `Cuota ${first.number}: ${formatDate(first.from)} → ${formatDate(first.to)}${r.changes.length > 1 ? ` (+${r.changes.length - 1})` : ''} · ` : ''}“{r.reason}” · {admin ? `${r.requestedBy} · ` : ''}{formatDateTime(r.createdAt)}{r.resolution ? ` · ${r.resolution}` : ''}</small>
+                <small>{r.kind === 'otro' ? `${r.topicLabel} · ` : ''}{r.kind !== 'otro' && first ? `Cuota ${first.number}: ${formatDate(first.from)} → ${formatDate(first.to)}${r.changes.length > 1 ? ` (+${r.changes.length - 1})` : ''} · ` : ''}“{r.reason}” · {admin ? `${r.requestedBy} · ` : ''}{formatDateTime(r.createdAt)}{r.resolution ? ` · ${r.resolution}` : ''}</small>
               </div>
               <Badge tone={STATUS[r.status][1]}>{r.statusLabel}</Badge>
             </div>
