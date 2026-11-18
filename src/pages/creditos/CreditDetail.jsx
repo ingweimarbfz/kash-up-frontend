@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { MdArrowBack, MdBlock, MdPrint, MdPhone, MdPayments, MdAutorenew, MdReceiptLong } from 'react-icons/md'
+import { MdArrowBack, MdBlock, MdPrint, MdPhone, MdPayments, MdAutorenew, MdReceiptLong, MdEdit, MdArrowForward } from 'react-icons/md'
 import api, { errorMessage } from '../../api/client'
 import { useAuth } from '../../context/AuthContext'
 import { Badge, Card, Empty, Field, Kpi, Modal, PageHead, Spinner, useToast } from '../../components/ui'
@@ -48,6 +48,78 @@ const VoidModal = ({ credit, onClose, onDone }) => {
   )
 }
 
+// Editar el crédito (administrador): fecha de cobro de una cuota (y las siguientes), no cobrar domingos y notas.
+// Los montos no cambian. El motivo queda en la bitácora.
+const EditModal = ({ credit, onClose, onDone }) => {
+  const active = credit.status === 'activo'
+  const movable = credit.installments.filter((i) => i.status !== 'pagada' && i.status !== 'anulada')
+  const first = movable[0]
+  const [f, setF] = useState({ fromNumber: first ? String(first.number) : '', newDate: first?.dueDate || '', mode: 'siguientes', skipSundays: credit.skipSundays, notes: credit.notes || '', reason: '' })
+  const [preview, setPreview] = useState(null)
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const set = (k) => (e) => setF((x) => ({ ...x, [k]: e?.target ? (e.target.type === 'checkbox' ? e.target.checked : e.target.value) : e }))
+  const target = credit.installments.find((i) => String(i.number) === f.fromNumber)
+  const datesChanged = active && target && f.newDate && f.newDate !== target.dueDate
+  const sundaysChanged = f.skipSundays !== credit.skipSundays
+  const body = () => ({
+    dates: datesChanged || (active && sundaysChanged && target) ? { fromNumber: Number(f.fromNumber), newDate: f.newDate, mode: f.mode } : undefined,
+    skipSundays: f.skipSundays, notes: f.notes, reason: f.reason
+  })
+  useEffect(() => {
+    if (!datesChanged && !(active && sundaysChanged)) { setPreview(null); setError(''); return undefined }
+    const t = setTimeout(() => {
+      api.put(`/creditos/${credit.id}`, { ...body(), preview: true }).then(({ data }) => { setPreview(data.changes); setError('') }).catch((e) => { setPreview(null); setError(errorMessage(e)) })
+    }, 300)
+    return () => clearTimeout(t)
+  }, [f.fromNumber, f.newDate, f.mode, f.skipSundays]) // eslint-disable-line react-hooks/exhaustive-deps
+  const submit = async (e) => {
+    e.preventDefault(); setError('')
+    if (f.reason.trim().length < 5) return setError('Escribe el motivo del cambio (mínimo 5 letras): queda en la bitácora.')
+    setSaving(true)
+    try { const { data } = await api.put(`/creditos/${credit.id}`, body()); onDone(data) } catch (err) { setError(errorMessage(err)); setSaving(false) }
+  }
+  return (
+    <Modal size="lg" title={`Editar crédito #${credit.number}`} onClose={onClose}
+      footer={<><button type="button" className="btn" onClick={onClose}>Cancelar</button><button type="submit" form="edit-credit" className="btn btn-primary" disabled={saving}>{saving && <Spinner />} Guardar cambios</button></>}>
+      <form id="edit-credit" className="stack" onSubmit={submit} noValidate>
+        {active && movable.length > 0 ? (
+          <>
+            <div className="section-title">Fecha de cobro</div>
+            <div className="form-grid">
+              <Field label="Cuota" htmlFor="ef">
+                <select id="ef" value={f.fromNumber} onChange={(e) => { const i = credit.installments.find((x) => String(x.number) === e.target.value); setF((x) => ({ ...x, fromNumber: e.target.value, newDate: i?.dueDate || x.newDate })) }}>
+                  {movable.map((i) => <option key={i.number} value={i.number}>Cuota {i.number} · {formatDate(i.dueDate)} · {formatMoney(i.amount - i.paidAmount - (i.waived || 0))}{i.status === 'parcial' ? ' (abonada)' : ''}</option>)}
+                </select>
+              </Field>
+              <Field label="Nueva fecha" htmlFor="ed"><input id="ed" type="date" min={credit.disbursementDate} value={f.newDate} onChange={set('newDate')} /></Field>
+              <div className="span-2 row-actions">
+                <label className="check"><input type="radio" name="em" checked={f.mode === 'siguientes'} onChange={() => setF((x) => ({ ...x, mode: 'siguientes' }))} /><span>Mover también las cuotas siguientes ({frequencyText(credit)})</span></label>
+                <label className="check"><input type="radio" name="em" checked={f.mode === 'una'} onChange={() => setF((x) => ({ ...x, mode: 'una' }))} /><span>Solo esta cuota</span></label>
+              </div>
+              <label className="check span-2"><input type="checkbox" checked={f.skipSundays} onChange={set('skipSundays')} /><span>No cobrar los domingos</span></label>
+            </div>
+            {preview && preview.length > 0 && (
+              <div className="alert info">
+                <div className="stack" style={{ gap: 4 }}>
+                  <strong>{preview.length} cuota(s) cambian de fecha:</strong>
+                  {preview.slice(0, 6).map((x) => <span key={x.number}>Cuota {x.number}: {formatDate(x.from)} <MdArrowForward /> {formatDate(x.to)}</span>)}
+                  {preview.length > 6 && <span>… y {preview.length - 6} más, hasta el {formatDate(preview[preview.length - 1].to)}.</span>}
+                </div>
+              </div>
+            )}
+            {preview && preview.length === 0 && <div className="alert">Las fechas quedan iguales.</div>}
+            <small className="hint">Los valores de las cuotas no cambian. Las cuotas pagadas no se mueven.</small>
+          </>
+        ) : <div className="alert">{active ? 'Todas las cuotas están pagadas: solo puedes cambiar las notas.' : `El crédito está ${credit.status}: solo puedes cambiar las notas.`}</div>}
+        <Field label="Notas" htmlFor="en"><textarea id="en" rows={2} value={f.notes} onChange={set('notes')} /></Field>
+        <Field label="Motivo del cambio" htmlFor="er" required hint="Queda en la bitácora junto con la fecha anterior y la nueva."><input id="er" value={f.reason} maxLength={200} onChange={set('reason')} placeholder="Ej.: el cliente cobra su sueldo el día 20" /></Field>
+        {error && <div className="alert bad">{error}</div>}
+      </form>
+    </Modal>
+  )
+}
+
 const CreditDetail = () => {
   const { id } = useParams()
   const { user } = useAuth()
@@ -56,6 +128,7 @@ const CreditDetail = () => {
   const [c, setC] = useState(null)
   const [error, setError] = useState('')
   const [voiding, setVoiding] = useState(false)
+  const [editing, setEditing] = useState(false)
   const [paying, setPaying] = useState(false)
   const [receipt, setReceipt] = useState(null)
   const [toast, toastNode] = useToast()
@@ -75,6 +148,7 @@ const CreditDetail = () => {
       <PageHead title={`Crédito #${c.number}`} subtitle={`${KIND_LABEL[c.kind]} · creado por ${c.createdBy || '—'} el ${formatDateTime(c.createdAt)}`}>
         <button type="button" className="btn btn-ghost" onClick={() => navigate(-1)}><MdArrowBack /> Volver</button>
         <button type="button" className="btn" onClick={() => window.print()}><MdPrint /> Imprimir</button>
+        {user.role === 'administrador' && c.status !== 'anulado' && <button type="button" className="btn" onClick={() => setEditing(true)}><MdEdit /> Editar</button>}
         {user.role === 'administrador' && c.status === 'activo' && !applied.length && <button type="button" className="btn" onClick={() => setVoiding(true)}><MdBlock /> Anular</button>}
         {c.status === 'activo' && <button type="button" className="btn" disabled={c.overdueCount > 0} title={renewTitle} onClick={() => navigate(`/creditos/nuevo?renovar=${c.id}`)}><MdAutorenew /> Renovar</button>}
         {canPay && <button type="button" className="btn btn-primary" onClick={() => setPaying(true)}><MdPayments /> Registrar pago</button>}
@@ -131,6 +205,7 @@ const CreditDetail = () => {
       </div>
       {paying && <PaymentModal credit={c} onClose={() => setPaying(false)} onDone={(r) => { setPaying(false); load(); setReceipt({ id: r.id, initial: r }); toast(`Pago ${r.number} registrado`) }} />}
       {receipt && <ReceiptModal paymentId={receipt.id} initial={receipt.initial} onClose={() => setReceipt(null)} onChanged={() => { load(); toast('Pago anulado') }} />}
+      {editing && <EditModal credit={c} onClose={() => setEditing(false)} onDone={(d) => { setEditing(false); setC(d); toast('Crédito actualizado') }} />}
       {voiding && <VoidModal credit={c} onClose={() => setVoiding(false)} onDone={(d) => { setVoiding(false); setC(d); toast('Crédito anulado') }} />}
       {toastNode}
     </div>
