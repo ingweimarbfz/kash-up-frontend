@@ -164,7 +164,7 @@ const PendingChange = ({ credit, admin, onDone, toast }) => {
     if (kind === 'rechazar' && admin && !note.trim()) return setError('Escribe el motivo del rechazo.')
     setBusy(kind)
     try {
-      await api.post(`/solicitudes-cambio-credito/${p.id}/${kind}`, { note: note.trim() || undefined })
+      await api.post(`/solicitudes-cambio-credito/${p.id}/${kind}`, { note: note.trim() || undefined }); window.dispatchEvent(new Event('ku:requests-changed'));
       toast(kind === 'aprobar' ? 'Cambio de fecha aprobado' : admin ? 'Solicitud rechazada' : 'Solicitud retirada'); onDone()
     } catch (e) { setError(errorMessage(e)); setBusy('') }
   }

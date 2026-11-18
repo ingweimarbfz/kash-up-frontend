@@ -160,7 +160,7 @@ export const ReopenActions = ({ request, onDone, onError }) => {
   const act = async (kind) => {
     if (kind === 'rechazar' && !note.trim()) return onError?.('Escribe el motivo del rechazo.')
     setBusy(true); onError?.('')
-    try { await api.post(`/cierres/solicitudes/${request.id}/${kind}`, { note: note.trim() || undefined }); onDone?.() } catch (err) { onError?.(errorMessage(err)) } finally { setBusy(false) }
+    try { await api.post(`/cierres/solicitudes/${request.id}/${kind}`, { note: note.trim() || undefined }); window.dispatchEvent(new Event('ku:requests-changed')); onDone?.() } catch (err) { onError?.(errorMessage(err)) } finally { setBusy(false) }
   }
   if (rejecting) {
     return (

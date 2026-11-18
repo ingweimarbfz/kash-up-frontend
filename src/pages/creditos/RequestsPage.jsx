@@ -57,7 +57,7 @@ const RequestsPage = () => {
     if (action === 'rechazar' && admin && !note.trim()) return setError('Escribe el motivo del rechazo.')
     setBusy(action)
     try {
-      const { data } = await api.post(`/solicitudes-credito/${open.id}/${action}`, { note })
+      const { data } = await api.post(`/solicitudes-credito/${open.id}/${action}`, { note }); window.dispatchEvent(new Event('ku:requests-changed'));
       close()
       if (action === 'aprobar') navigate(`/creditos/${data.creditId}`, { state: { created: true } })
       else { load(); toast(admin ? 'Solicitud rechazada' : 'Solicitud cancelada') }
