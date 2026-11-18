@@ -463,16 +463,21 @@ export const CountriesPage = () => {
   }
   return (
     <div className="stack">
-      <PageHead title="Países y monedas" subtitle="Dónde se ofrece QuontUp360. Cada país tiene su moneda: los precios de los planes y los valores de la app se muestran en ella." />
+      <PageHead title="Países y monedas" subtitle="Dónde se ofrece QuontUp360. Cada país tiene su moneda: los precios de los planes y los valores de la app se muestran en ella. El cierre automático es la hora local en que se cierran solas las jornadas abiertas (cada negocio puede usarla, poner otra o desactivarla)." />
       <Card flush>
         <div className="table-wrap"><table className="table">
-          <thead><tr><th>País</th><th>Moneda</th><th>Formato</th><th>Zona horaria</th><th>Indicativo</th><th>Estado</th><th /></tr></thead>
+          <thead><tr><th>País</th><th>Moneda</th><th>Formato</th><th>Zona horaria</th><th>Cierre automático</th><th>Indicativo</th><th>Estado</th><th /></tr></thead>
           <tbody>{cat.countries.map((c) => (
             <tr key={c.code}>
               <td><span className="country-label"><Flag code={c.code} size={16} /><strong>{c.name}</strong></span></td>
               <td><b className="cur">{c.currency}</b> <small>{c.currencyName}</small></td>
               <td className="num">{moneyIn(c.currency === 'COP' || c.currency === 'PYG' || c.currency === 'CLP' || c.currency === 'ARS' ? 150000 : 1500.5, c.currency, c.locale)}</td>
               <td><small>{c.timezone}</small></td>
+              <td>
+                <input type="time" min="12:00" max="23:59" aria-label={`Cierre automático en ${c.name}`} defaultValue={c.autoCloseTime || ''} key={`${c.code}-${c.autoCloseTime || ''}`}
+                  title="Hora local a la que se cierran solas las jornadas abiertas. Vacía: sin cierre automático."
+                  onBlur={(e) => { const v = e.target.value || null; if (v !== (c.autoCloseTime || null)) save(c.code, { autoCloseTime: v }, v ? `Cierre automático en ${c.name} a las ${v}` : `${c.name} sin cierre automático`) }} />
+              </td>
               <td>{c.phonePrefix}</td>
               <td>
                 <label className="check"><input type="checkbox" checked={c.active} onChange={(e) => save(c.code, { active: e.target.checked }, `${c.name} ${e.target.checked ? 'activado' : 'desactivado'}`)} /><span>{c.active ? 'Se ofrece' : 'Inactivo'}</span></label>
