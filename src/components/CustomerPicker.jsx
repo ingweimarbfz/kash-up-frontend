@@ -42,7 +42,7 @@ const CustomerPicker = ({ value, onChange, id = 'customer-picker', autoFocus = f
     return (
       <div className="picked">
         {value.photoThumb ? <img className="thumb" src={value.photoThumb} alt="" /> : <span className="thumb" />}
-        <div className="grow"><strong>{value.fullName}</strong><small>{value.docType || 'CC'} {value.identification} · {value.phone}{value.address ? ` · ${value.address}` : ''}</small></div>
+        <div className="grow"><strong>{value.fullName}</strong><small>{value.docType ? `${value.docType} ` : ''}{value.identification} · {value.phone}{value.address ? ` · ${value.address}` : ''}</small></div>
         <div className="right hide-sm"><small>Saldo actual</small><div className="money"><strong>{formatMoney(value.balance || 0)}</strong></div>{value.overdue > 0 && <small className="text-bad">En mora</small>}</div>
         {!locked && <button type="button" className="btn btn-sm" onClick={() => { setOpen(true); setQ('') }}>Cambiar</button>}
         {!locked && <button type="button" className="btn btn-ghost btn-icon" aria-label="Quitar cliente" onClick={() => onChange(null)}><MdClose /></button>}

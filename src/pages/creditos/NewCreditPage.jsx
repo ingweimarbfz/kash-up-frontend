@@ -6,10 +6,11 @@ import { useAuth } from '../../context/AuthContext'
 import { Card, Field, PageHead, Spinner } from '../../components/ui'
 import { MoneyInput, PhotoInput, Tabs } from '../../components/forms'
 import ScheduleTable from '../../components/ScheduleTable'
-import { FREQUENCIES, FREQ_LABEL, METHODS, METHOD_LABEL, rateText } from '../../utils/credit'
+import { FREQUENCIES, FREQ_LABEL, METHODS, METHOD_LABEL, rateText, termText, dailyMonthlyTip } from '../../utils/credit'
 import { formatDate, formatMoney } from '../../utils/format'
 import { DiscountChip } from '../inventario/common'
 import CustomerPicker from '../../components/CustomerPicker'
+import { phoneProps } from '../../utils/phones'
 
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date())
 const EMPTY_REF = { name: '', phone: '', relationship: '', address: '' }
@@ -91,7 +92,17 @@ const NewCreditPage = () => {
   }), [form, renewal])
 
   // Vista previa automática del plan cuando cambian las condiciones.
-  const ready = (!renewId || renewal?.canRenew) && form.customerId && customer?.hasUtilityBill !== false && form.count && form.rate !== '' && (form.kind === 'efectivo' ? Number(form.principal) > 0 : form.items.some((it) => it.productId && Number(it.quantity) > 0))
+  // Lo que falta para calcular el plan: se muestra en el resumen para que se sepa qué completar.
+  const rateNumber = Number(String(form.rate).replace(',', '.'))
+  const missing = [
+    !form.customerId && 'el cliente',
+    form.customerId && customer?.hasUtilityBill === false && 'la foto del recibo de servicios del cliente',
+    form.kind === 'efectivo' && !(Number(form.principal) > 0) && (renewId ? 'el valor del nuevo préstamo' : 'el valor del préstamo'),
+    form.kind === 'producto' && !form.items.some((it) => it.productId && Number(it.quantity) > 0) && 'al menos un producto con su cantidad',
+    (String(form.rate).trim() === '' || Number.isNaN(rateNumber)) && (form.interestRateId ? 'la tasa de interés' : 'la tasa (%) de interés'),
+    !(Number(form.count) >= 1) && 'el número de cuotas'
+  ].filter(Boolean)
+  const ready = (!renewId || renewal?.canRenew) && missing.length === 0
   useEffect(() => {
     if (!ready) { setPreview(null); setPreviewError(''); return undefined }
     const t = setTimeout(() => {
@@ -202,17 +213,18 @@ const NewCreditPage = () => {
               {!form.interestRateId && (
                 <>
                   <Field label="Modalidad" htmlFor="nm"><select id="nm" value={form.method} onChange={(e) => setForm((f) => ({ ...f, method: e.target.value, rateBasis: e.target.value === 'sobre_saldo' ? 'mensual' : f.rateBasis }))}>{METHODS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></Field>
-                  <Field label="Tasa (%)" htmlFor="nra"><div className="input-pair"><input id="nra" inputMode="decimal" value={form.rate} onChange={set('rate')} placeholder="20" />
+                  <Field label="Tasa (%)" htmlFor="nra" required><div className="input-pair"><input id="nra" inputMode="decimal" value={form.rate} onChange={set('rate')} placeholder="Ej.: 20" aria-invalid={Boolean(form.customerId) && String(form.rate).trim() === ''} />
                     <select value={form.rateBasis} onChange={set('rateBasis')} disabled={form.method === 'sobre_saldo'} aria-label="Base"><option value="mensual">mensual</option><option value="total">total</option></select></div></Field>
                   <small className="hint span-2">{METHODS.find(([k]) => k === form.method)[2]}</small>
                 </>
               )}
               <Field label="Modalidad de cobro" htmlFor="nf"><select id="nf" value={form.frequency} onChange={set('frequency')}>{FREQUENCIES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></Field>
               {form.frequency === 'personalizada' && <Field label="Cada cuántos días" htmlFor="ncd"><input id="ncd" type="number" min="1" max="365" value={form.customDays} onChange={set('customDays')} /></Field>}
-              <Field label="Número de cuotas" htmlFor="ncn" required><input id="ncn" type="number" min="1" max="720" value={form.count} onChange={set('count')} /></Field>
+              <Field label="Número de cuotas" htmlFor="ncn" required hint={termText(form)}><input id="ncn" type="number" min="1" max="720" value={form.count} onChange={set('count')} /></Field>
               <Field label="Fecha de desembolso" htmlFor="ndd"><input id="ndd" type="date" value={form.disbursementDate} onChange={set('disbursementDate')} /></Field>
               <Field label="Primera cuota" htmlFor="nfd" hint="Vacío = un periodo después del desembolso"><input id="nfd" type="date" value={form.firstDueDate} onChange={set('firstDueDate')} /></Field>
               {form.frequency === 'diaria' && <label className="check span-2"><input type="checkbox" checked={form.skipSundays} onChange={set('skipSundays')} /> No cobrar los domingos</label>}
+              {dailyMonthlyTip(form) && <div className="alert warn span-2">{dailyMonthlyTip(form)}</div>}
             </div>
           </Card>
 
@@ -221,7 +233,7 @@ const NewCreditPage = () => {
               {form.references.map((r, i) => (
                 <div key={i} className="form-grid ref-block">
                   <Field label="Nombre completo" htmlFor={`rn${i}`} required><input id={`rn${i}`} data-only="letters" value={r.name} onChange={(e) => setRef(i, 'name', e.target.value)} /></Field>
-                  <Field label="Celular" htmlFor={`rp${i}`} required><input id={`rp${i}`} inputMode="numeric" minLength={7} maxLength={10} value={r.phone} onChange={(e) => setRef(i, 'phone', e.target.value)} /></Field>
+                  <Field label="Celular" htmlFor={`rp${i}`} required><input id={`rp${i}`} {...phoneProps()} value={r.phone} onChange={(e) => setRef(i, 'phone', e.target.value)} /></Field>
                   <Field label="Parentesco o relación" htmlFor={`rr${i}`}><input id={`rr${i}`} value={r.relationship} onChange={(e) => setRef(i, 'relationship', e.target.value)} placeholder="Hermana, vecino, jefe…" /></Field>
                   <Field label="Dirección" htmlFor={`ra${i}`}><input id={`ra${i}`} value={r.address} onChange={(e) => setRef(i, 'address', e.target.value)} /></Field>
                   {form.references.length > 1 && <div className="span-2 right"><button type="button" className="btn btn-sm btn-ghost" onClick={() => setForm((f) => ({ ...f, references: f.references.filter((_, j) => j !== i) }))}><MdDelete /> Quitar referencia</button></div>}
@@ -236,7 +248,7 @@ const NewCreditPage = () => {
         <div className="stack sticky-col">
           <Card title="Resumen" icon={<MdPayments />}>
             {calculating && !preview && <div className="splash" style={{ minHeight: 120 }}><Spinner /></div>}
-            {!preview && !calculating && <p className="disabled-text" style={{ margin: 0 }}>{previewError || 'Completa cliente, valor y condiciones para ver el plan.'}</p>}
+            {!preview && !calculating && <p className="disabled-text" style={{ margin: 0 }}>{previewError || (missing.length ? `Para ver el plan y crear el crédito falta: ${missing.join(', ')}.` : 'Completa cliente, valor y condiciones para ver el plan.')}</p>}
             {preview && (
               <dl className="stat-list">
                 <div><dt>Capital</dt><dd className="money">{formatMoney(preview.principal)}</dd></div>

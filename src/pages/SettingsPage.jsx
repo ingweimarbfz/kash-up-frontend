@@ -5,6 +5,7 @@ import { useSettings } from '../context/SettingsContext'
 import { Card, Field, PageHead, Spinner, useToast } from '../components/ui'
 import { fileToDataUrl } from '../utils/image'
 import { BrandLogo } from '../components/Logo'
+import { phoneProps } from '../utils/phones'
 
 const SettingsPage = () => {
   const { settings, setSettings } = useSettings()
@@ -45,7 +46,7 @@ const SettingsPage = () => {
             <Field label="Nombre del negocio" htmlFor="bn" required><input id="bn" value={form.businessName || ''} onChange={set('businessName')} /></Field>
             <Field label="Nombre corto" htmlFor="sn"><input id="sn" value={form.shortName || ''} onChange={set('shortName')} /></Field>
             <Field label="NIT o documento" htmlFor="nit"><input id="nit" data-only="nit" maxLength={15} value={form.nit || ''} onChange={set('nit')} placeholder="900123456-7" /></Field>
-            <Field label="Teléfono" htmlFor="ph"><input id="ph" minLength={7} maxLength={10} value={form.phone || ''} onChange={set('phone')} inputMode="numeric" /></Field>
+            <Field label="Teléfono" htmlFor="ph"><input {...phoneProps()} id="ph" value={form.phone || ''} onChange={set('phone')} /></Field>
             <Field label="Correo" htmlFor="em"><input id="em" type="email" value={form.email || ''} onChange={set('email')} /></Field>
             <Field label="Ciudad" htmlFor="ci"><input id="ci" data-only="letters" value={form.city || ''} onChange={set('city')} /></Field>
             <div className="span-2"><Field label="Dirección" htmlFor="ad"><input id="ad" value={form.address || ''} onChange={set('address')} /></Field></div>
