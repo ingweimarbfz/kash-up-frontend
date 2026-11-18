@@ -15,7 +15,6 @@ export const rateText = (r) => `${String(r.rate).replace('.', ',')} % ${BASIS_LA
 export const CREDIT_STATUS = { activo: ['Activo', 'brand'], pagado: ['Pagado', 'ok'], renovado: ['Renovado', 'dark'], anulado: ['Anulado', 'muted'], castigado: ['Castigado', 'bad'] }
 export const INSTALLMENT_STATUS = { pendiente: ['Pendiente', ''], parcial: ['Parcial', 'warn'], pagada: ['Pagada', 'ok'], anulada: ['Anulada', 'muted'] }
 export const CUSTOMER_STATUS = { activo: ['Activo', 'ok'], bloqueado: ['Bloqueado', 'bad'], inactivo: ['Inactivo', 'muted'] }
-export const DOC_TYPES = ['CC', 'CE', 'TI', 'PA', 'PPT', 'NIT']
 export const KIND_LABEL = { efectivo: 'Efectivo', producto: 'Producto' }
 
 export const frequencyText = (c) => (c.frequency === 'personalizada' ? `Cada ${c.intervalDays} días` : FREQ_LABEL[c.frequency])

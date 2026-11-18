@@ -4,6 +4,7 @@ import papi from './api'
 import { errorMessage } from '../api/client'
 import { Badge, Card, Empty, Field, Kpi, Modal, PageHead, Spinner, useToast } from '../components/ui'
 import { formatDate, formatDateTime } from '../utils/format'
+import { DocTypeSelect, docTypesFor } from '../utils/docTypes'
 import { CountryLabel, CountrySelect, Flag, FEATURE_SHORT, annualPrice, limitText, moneyIn } from '../utils/countries'
 
 const GROUPS = { cartera: 'Cartera', productos: 'Productos', cobro: 'Cobro en calle', flota: 'Flota', control: 'Control', clientes: 'Clientes' }
@@ -246,12 +247,13 @@ const OrgForm = ({ initial, cat, plans, onClose, onSaved }) => {
   const editing = !!initial?.id
   const [f, setF] = useState(() => editing
     ? { ...initial, planId: initial.planId || '' }
-    : { name: '', nit: '', phone: '', email: '', city: '', address: '', countryCode: 'CO', planId: plans.find((p) => p.highlight)?.id || '', billingCycle: 'mensual', status: 'prueba', startDate: '', renewalDate: '', contactName: '', notes: '', extraFeatures: [], admin: { identification: '', name: '', lastName: '', username: '', email: '', phone: '' } })
+    : { name: '', nit: '', phone: '', email: '', city: '', address: '', countryCode: 'CO', planId: plans.find((p) => p.highlight)?.id || '', billingCycle: 'mensual', status: 'prueba', startDate: '', renewalDate: '', contactName: '', notes: '', extraFeatures: [], admin: { docType: '', identification: '', name: '', lastName: '', username: '', email: '', phone: '' } })
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }))
   const setA = (k, v) => setF((x) => ({ ...x, admin: { ...x.admin, [k]: v } }))
   const country = cat.countries.find((c) => c.code === f.countryCode)
+  const adminDocTypes = country?.docTypes?.length ? country.docTypes : docTypesFor(f.countryCode)
   const plan = plans.find((p) => p.id === Number(f.planId))
   const price = plan?.prices.find((x) => x.country === f.countryCode)
   const extras = cat.features.filter((x) => !x.core && plan && !plan.features.includes(x.key))
@@ -270,7 +272,7 @@ const OrgForm = ({ initial, cat, plans, onClose, onSaved }) => {
         <div className="form-grid">
           <Field label="Nombre del negocio" required htmlFor="on"><input id="on" value={f.name} onChange={(e) => set('name', e.target.value)} /></Field>
           <Field label="NIT / RUC / documento fiscal" htmlFor="oi"><input id="oi" data-only="nit" maxLength={15} value={f.nit || ''} onChange={(e) => set('nit', e.target.value)} /></Field>
-          <Field label="País" required htmlFor="oc" hint={country ? `Moneda ${country.currency} (${country.currencyName}) · ${country.phonePrefix}` : null}><CountrySelect id="oc" countries={cat.countries.filter((c) => c.active || c.code === f.countryCode)} value={f.countryCode} onChange={(v) => set('countryCode', v)} /></Field>
+          <Field label="País" required htmlFor="oc" hint={country ? `Moneda ${country.currency} (${country.currencyName}) · ${country.phonePrefix}` : null}><CountrySelect id="oc" countries={cat.countries.filter((c) => c.active || c.code === f.countryCode)} value={f.countryCode} onChange={(v) => setF((x) => ({ ...x, countryCode: v, admin: x.admin ? { ...x.admin, docType: '' } : x.admin }))} /></Field>
           <Field label="Ciudad" htmlFor="ocity"><input id="ocity" data-only="letters" value={f.city || ''} onChange={(e) => set('city', e.target.value)} /></Field>
           <Field label="Contacto" htmlFor="ocn"><input id="ocn" data-only="letters" value={f.contactName || ''} onChange={(e) => set('contactName', e.target.value)} /></Field>
           <Field label="Teléfono" htmlFor="op"><input id="op" inputMode="numeric" minLength={7} maxLength={10} value={f.phone || ''} onChange={(e) => set('phone', e.target.value)} /></Field>
@@ -306,10 +308,11 @@ const OrgForm = ({ initial, cat, plans, onClose, onSaved }) => {
             <h4>Primer administrador</h4>
             <small className="hint">Entra a la app con su usuario y su número de documento como contraseña; después la puede cambiar.</small>
             <div className="form-grid">
-              <Field label="Documento" required htmlFor="ai"><input id="ai" inputMode="numeric" minLength={5} maxLength={15} value={f.admin.identification} onChange={(e) => setA('identification', e.target.value)} /></Field>
-              <Field label="Usuario" required htmlFor="au"><input id="au" value={f.admin.username} onChange={(e) => setA('username', e.target.value.toLowerCase())} placeholder="nombre.apellido" /></Field>
+              <Field label="Tipo de documento" htmlFor="adt"><DocTypeSelect id="adt" types={adminDocTypes} value={f.admin.docType} onChange={(v) => setA('docType', v)} /></Field>
+              <Field label="Número de documento" required htmlFor="ai"><input id="ai" inputMode="numeric" minLength={5} maxLength={15} value={f.admin.identification} onChange={(e) => setA('identification', e.target.value)} /></Field>
               <Field label="Nombres" required htmlFor="an"><input id="an" data-only="letters" value={f.admin.name} onChange={(e) => setA('name', e.target.value)} /></Field>
               <Field label="Apellidos" htmlFor="al"><input id="al" data-only="letters" value={f.admin.lastName} onChange={(e) => setA('lastName', e.target.value)} /></Field>
+              <Field label="Usuario" required htmlFor="au"><input id="au" value={f.admin.username} onChange={(e) => setA('username', e.target.value.toLowerCase())} placeholder="nombre.apellido" /></Field>
               <Field label="Correo" htmlFor="ae"><input id="ae" type="email" value={f.admin.email} onChange={(e) => setA('email', e.target.value)} /></Field>
               <Field label="Teléfono" htmlFor="ap"><input id="ap" inputMode="numeric" minLength={7} maxLength={10} value={f.admin.phone} onChange={(e) => setA('phone', e.target.value)} /></Field>
             </div>

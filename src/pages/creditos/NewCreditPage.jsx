@@ -91,7 +91,17 @@ const NewCreditPage = () => {
   }), [form, renewal])
 
   // Vista previa automática del plan cuando cambian las condiciones.
-  const ready = (!renewId || renewal?.canRenew) && form.customerId && customer?.hasUtilityBill !== false && form.count && form.rate !== '' && (form.kind === 'efectivo' ? Number(form.principal) > 0 : form.items.some((it) => it.productId && Number(it.quantity) > 0))
+  // Lo que falta para calcular el plan: se muestra en el resumen para que se sepa qué completar.
+  const rateNumber = Number(String(form.rate).replace(',', '.'))
+  const missing = [
+    !form.customerId && 'el cliente',
+    form.customerId && customer?.hasUtilityBill === false && 'la foto del recibo de servicios del cliente',
+    form.kind === 'efectivo' && !(Number(form.principal) > 0) && (renewId ? 'el valor del nuevo préstamo' : 'el valor del préstamo'),
+    form.kind === 'producto' && !form.items.some((it) => it.productId && Number(it.quantity) > 0) && 'al menos un producto con su cantidad',
+    (String(form.rate).trim() === '' || Number.isNaN(rateNumber)) && (form.interestRateId ? 'la tasa de interés' : 'la tasa (%) de interés'),
+    !(Number(form.count) >= 1) && 'el número de cuotas'
+  ].filter(Boolean)
+  const ready = (!renewId || renewal?.canRenew) && missing.length === 0
   useEffect(() => {
     if (!ready) { setPreview(null); setPreviewError(''); return undefined }
     const t = setTimeout(() => {
@@ -202,7 +212,7 @@ const NewCreditPage = () => {
               {!form.interestRateId && (
                 <>
                   <Field label="Modalidad" htmlFor="nm"><select id="nm" value={form.method} onChange={(e) => setForm((f) => ({ ...f, method: e.target.value, rateBasis: e.target.value === 'sobre_saldo' ? 'mensual' : f.rateBasis }))}>{METHODS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></Field>
-                  <Field label="Tasa (%)" htmlFor="nra"><div className="input-pair"><input id="nra" inputMode="decimal" value={form.rate} onChange={set('rate')} placeholder="20" />
+                  <Field label="Tasa (%)" htmlFor="nra" required><div className="input-pair"><input id="nra" inputMode="decimal" value={form.rate} onChange={set('rate')} placeholder="Ej.: 20" aria-invalid={Boolean(form.customerId) && String(form.rate).trim() === ''} />
                     <select value={form.rateBasis} onChange={set('rateBasis')} disabled={form.method === 'sobre_saldo'} aria-label="Base"><option value="mensual">mensual</option><option value="total">total</option></select></div></Field>
                   <small className="hint span-2">{METHODS.find(([k]) => k === form.method)[2]}</small>
                 </>
@@ -236,7 +246,7 @@ const NewCreditPage = () => {
         <div className="stack sticky-col">
           <Card title="Resumen" icon={<MdPayments />}>
             {calculating && !preview && <div className="splash" style={{ minHeight: 120 }}><Spinner /></div>}
-            {!preview && !calculating && <p className="disabled-text" style={{ margin: 0 }}>{previewError || 'Completa cliente, valor y condiciones para ver el plan.'}</p>}
+            {!preview && !calculating && <p className="disabled-text" style={{ margin: 0 }}>{previewError || (missing.length ? `Para ver el plan y crear el crédito falta: ${missing.join(', ')}.` : 'Completa cliente, valor y condiciones para ver el plan.')}</p>}
             {preview && (
               <dl className="stat-list">
                 <div><dt>Capital</dt><dd className="money">{formatMoney(preview.principal)}</dd></div>

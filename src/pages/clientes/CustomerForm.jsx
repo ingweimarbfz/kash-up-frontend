@@ -4,10 +4,11 @@ import { useAuth } from '../../context/AuthContext'
 import { Field, Modal, Spinner } from '../../components/ui'
 import { MdReceiptLong } from 'react-icons/md'
 import { DocIcon, LocationButton, MoneyInput, PhotoInput } from '../../components/forms'
-import { CUSTOMER_STATUS, DOC_TYPES } from '../../utils/credit'
+import { CUSTOMER_STATUS } from '../../utils/credit'
+import { DocTypeSelect } from '../../utils/docTypes'
 
 const EMPTY = {
-  docType: 'CC', identification: '', name: '', lastName: '', phone: '', phone2: '', email: '', address: '', neighborhood: '', city: '',
+  docType: '', identification: '', name: '', lastName: '', phone: '', phone2: '', email: '', address: '', neighborhood: '', city: '',
   occupation: '', businessAddress: '', birthDate: '', photoUrl: null, photoThumb: null, idPhotoUrl: null, idPhotoBackUrl: null, utilityBillUrl: null, lat: null, lng: null,
   lenderId: '', creditLimit: '', status: 'activo', notes: ''
 }
@@ -61,7 +62,7 @@ const CustomerForm = ({ initial, onClose, onSaved }) => {
 
         <div className="section-title">Datos personales</div>
         <Field label="Tipo de documento" htmlFor="docType">
-          <select id="docType" value={form.docType} onChange={set('docType')}>{DOC_TYPES.map((d) => <option key={d}>{d}</option>)}</select>
+          <DocTypeSelect id="docType" value={form.docType} onChange={set('docType')} />
         </Field>
         <Field label="Número de documento" htmlFor="ident" required><input id="ident" minLength={5} maxLength={15} value={form.identification} onChange={set('identification')} inputMode="numeric" /></Field>
         <Field label="Nombres" htmlFor="cname" required><input id="cname" data-only="letters" value={form.name} onChange={set('name')} /></Field>
