@@ -45,9 +45,9 @@ export const termText = ({ frequency, count, customDays, skipSundays }) => {
 
 // Recomendación para cobro diario con tasa mensual: el interés se calcula por los días de cobro
 // (cuotas ÷ 30 meses), aunque sin domingos el crédito dure más días en el calendario.
-export const dailyMonthlyTip = ({ frequency, rateBasis, count, skipSundays }) => {
+export const dailyMonthlyTip = ({ frequency, rateBasis, method, count, skipSundays }) => {
   const n = Number(count)
-  if (frequency !== 'diaria' || rateBasis !== 'mensual' || !(n >= 1)) return null
+  if (frequency !== 'diaria' || rateBasis !== 'mensual' || method === 'sobre_saldo' || !(n >= 1)) return null
   const months = String(Math.round((n / 30) * 100) / 100).replace('.', ',')
   const calendar = skipSundays ? Math.ceil((n * 7) / 6) : n
   const span = skipSundays && calendar > n ? `${n} cuotas de lunes a sábado duran unos ${calendar} días en el calendario, pero` : `Con ${n} cuotas diarias,`
