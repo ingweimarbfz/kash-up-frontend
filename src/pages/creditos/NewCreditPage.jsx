@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext'
 import { Card, Field, PageHead, Spinner } from '../../components/ui'
 import { MoneyInput, PhotoInput, Tabs } from '../../components/forms'
 import ScheduleTable from '../../components/ScheduleTable'
-import { FREQUENCIES, FREQ_LABEL, METHODS, METHOD_LABEL, rateText, termText } from '../../utils/credit'
+import { FREQUENCIES, FREQ_LABEL, METHODS, METHOD_LABEL, rateText, termText, dailyMonthlyTip } from '../../utils/credit'
 import { formatDate, formatMoney } from '../../utils/format'
 import { DiscountChip } from '../inventario/common'
 import CustomerPicker from '../../components/CustomerPicker'
@@ -224,6 +224,7 @@ const NewCreditPage = () => {
               <Field label="Fecha de desembolso" htmlFor="ndd"><input id="ndd" type="date" value={form.disbursementDate} onChange={set('disbursementDate')} /></Field>
               <Field label="Primera cuota" htmlFor="nfd" hint="Vacío = un periodo después del desembolso"><input id="nfd" type="date" value={form.firstDueDate} onChange={set('firstDueDate')} /></Field>
               {form.frequency === 'diaria' && <label className="check span-2"><input type="checkbox" checked={form.skipSundays} onChange={set('skipSundays')} /> No cobrar los domingos</label>}
+              {dailyMonthlyTip(form) && <div className="alert warn span-2">{dailyMonthlyTip(form)}</div>}
             </div>
           </Card>
 
